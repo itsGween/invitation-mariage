@@ -1,0 +1,32 @@
+.monogramme--ligne {
+  color: var(--or-texte);
+  font-size: 2rem;
+  white-space: nowrap;
+}
+
+.monogramme--cercle {
+  display: block;
+  overflow: visible;
+}
+
+.monogramme__cercle {
+  fill: none;
+  stroke: var(--or);
+  stroke-width: 0.7;
+}
+
+.monogramme__cercle--double {
+  stroke-width: 0.5;
+  opacity: 0.7;
+}
+
+.monogramme__feuille {
+  fill: var(--or);
+}
+
+.monogramme__texte {
+  font-family: var(--font-script);
+  font-size: 34px;
+  text-anchor: middle;
+  fill: var(--or-texte);
+}

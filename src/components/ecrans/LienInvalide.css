@@ -1,0 +1,80 @@
+.lien-invalide {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  padding: 7rem 1.5rem 11rem;
+  overflow: hidden;
+  text-align: center;
+}
+
+.lien-invalide__contenu {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 17rem;
+}
+
+.lien-invalide__monogramme {
+  width: 11rem;
+  margin-bottom: 1.25rem;
+}
+
+.lien-invalide__titre {
+  font-size: 1.5rem;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+.lien-invalide__texte {
+  font-size: 1.375rem;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+/* Feuillage léger en haut à gauche, gerbe en bas à droite */
+.lien-invalide__decor--haut {
+  top: -3.2rem;
+  left: -4.5rem;
+  width: 170px;
+  opacity: 0.75;
+}
+
+.lien-invalide__decor--bas {
+  right: -2.6rem;
+  bottom: -3.4rem;
+  width: 170px;
+}
+
+@media (min-width: 1024px) {
+  .lien-invalide__contenu {
+    max-width: 22rem;
+  }
+
+  .lien-invalide__monogramme {
+    width: 13rem;
+  }
+
+  .lien-invalide__titre {
+    font-size: 1.875rem;
+  }
+
+  .lien-invalide__texte {
+    font-size: 1.625rem;
+  }
+
+  .lien-invalide__decor--haut {
+    width: 280px;
+  }
+
+  .lien-invalide__decor--bas {
+    right: -3.5rem;
+    bottom: -5rem;
+    width: 270px;
+  }
+}

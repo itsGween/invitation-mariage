@@ -1,0 +1,162 @@
+.details {
+  --focus: var(--ivoire);
+
+  position: relative;
+  padding: 4.25rem 1.5rem 3rem;
+  overflow: hidden;
+  background: var(--vert-encre);
+  color: var(--ivoire);
+}
+
+/* Gerbe discrète, dans l'angle haut gauche */
+.details__decor {
+  top: -2.4rem;
+  left: -3.2rem;
+  width: 170px;
+  opacity: 0.6;
+}
+
+.details__contenu {
+  position: relative;
+  z-index: 1;
+  max-width: 23rem;
+  margin-inline: auto;
+}
+
+.details__entete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--or-clair);
+}
+
+.details__titre {
+  font-size: 3.75rem;
+  line-height: 1;
+}
+
+.details__ornement {
+  margin-top: 0.1rem;
+  font-size: 1.05rem;
+}
+
+.details__bloc {
+  margin-top: 1.6rem;
+}
+
+.details__sous-titre {
+  color: var(--or-clair);
+  font-size: 2rem;
+}
+
+.details__programme,
+.details__contacts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.details__etape {
+  display: grid;
+  grid-template-columns: 2.25rem 3.6rem 1fr;
+  align-items: start;
+  gap: 0.75rem;
+  padding-block: 0.75rem;
+  border-bottom: 1px solid rgb(217 188 130 / 0.3);
+  line-height: 1.3;
+}
+
+.details__icone {
+  font-size: 2.1rem;
+  stroke-width: 1;
+}
+
+.details__heure {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.details__intitule {
+  display: block;
+  font-size: 1.1875rem;
+  font-weight: 600;
+}
+
+.details__lieu {
+  display: block;
+  font-size: 1rem;
+}
+
+.details__tenue {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.6rem;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+.details__pastilles {
+  display: flex;
+  flex: none;
+  gap: 0.5rem;
+}
+
+.details__pastille {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1.500px solid var(--ivoire);
+  border-radius: 50%;
+}
+
+.details__pastille--sauge {
+  background: var(--sauge-claire);
+}
+
+.details__pastille--blush {
+  background: var(--blush);
+}
+
+.details__contacts {
+  display: grid;
+  gap: 0.15rem;
+  margin-top: 0.4rem;
+}
+
+.details__contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.5rem;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.details__contact:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.details__icone-contact {
+  flex: none;
+  font-size: 1.4rem;
+}
+
+.details__actions {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1.9rem;
+}
+
+@media (min-width: 1024px) {
+  .details {
+    width: 24.5rem;
+    padding: 3rem 2rem 2.25rem;
+    border-radius: 1.25rem;
+    box-shadow: var(--ombre-carte);
+  }
+
+  .details__decor {
+    width: 150px;
+  }
+}

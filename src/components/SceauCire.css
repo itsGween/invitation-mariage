@@ -1,0 +1,56 @@
+.sceau {
+  display: block;
+  overflow: visible;
+}
+
+.sceau__ton-clair {
+  stop-color: var(--or-clair);
+}
+.sceau__ton-moyen {
+  stop-color: var(--or);
+}
+.sceau__ton-fonce {
+  stop-color: var(--or-texte);
+}
+
+.sceau__ombre {
+  fill: rgb(var(--ombre-rgb) / 0.35);
+  filter: blur(3px);
+}
+
+.sceau__anneau {
+  fill: none;
+  stroke: var(--or-texte);
+  stroke-width: 1.2;
+  opacity: 0.7;
+}
+
+.sceau__filet {
+  fill: none;
+  stroke: var(--or-clair);
+  stroke-width: 0.5;
+  opacity: 0.8;
+}
+
+.sceau__texte {
+  font-family: var(--font-script);
+  font-size: 26px;
+  text-anchor: middle;
+  fill: color-mix(in srgb, var(--or-texte) 78%, var(--vert-encre));
+}
+
+.sceau__relief {
+  fill: var(--ivoire);
+  opacity: 0.7;
+}
+
+.sceau__eclat {
+  fill: var(--or);
+  opacity: 0;
+  transform: translate(var(--x), var(--y));
+}
+
+.sceau__moitie {
+  transform-box: view-box;
+  transform-origin: 50px 50px;
+}

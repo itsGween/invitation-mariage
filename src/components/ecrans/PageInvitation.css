@@ -1,0 +1,114 @@
+.page {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+}
+
+.page__colonnes:focus {
+  outline: none;
+}
+
+/* Réservés à la version ordinateur */
+.page__entete,
+.page__accroche,
+.page__decor {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .page__entete {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    max-width: 82rem;
+    height: 4.25rem;
+    margin-inline: auto;
+    padding-inline: 2.5rem;
+  }
+
+  .page__entete::after {
+    content: '';
+    position: absolute;
+    inset: auto 2.5rem 0;
+    height: 1px;
+    background: rgb(191 155 90 / 0.5);
+  }
+
+  .page__monogramme {
+    text-decoration: none;
+  }
+
+  .page__ancres {
+    display: flex;
+    gap: 2.5rem;
+  }
+
+  .page__ancres a {
+    padding-block: 0.4rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s ease;
+  }
+
+  .page__ancres a:hover {
+    border-bottom-color: var(--or);
+  }
+
+  .page__colonnes {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(14rem, 1fr) auto auto;
+    align-items: center;
+    gap: clamp(1.75rem, 3.2vw, 3.5rem);
+    max-width: 82rem;
+    margin-inline: auto;
+    padding: 2.75rem 2.5rem 4rem;
+  }
+
+  .page__accroche {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    max-width: 21rem;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .page__accroche-titre {
+    font-size: clamp(3rem, 4.4vw, 4.25rem);
+    line-height: 1.05;
+    text-wrap: balance;
+  }
+
+  .page__accroche-texte {
+    font-size: 1.25rem;
+    line-height: 1.45;
+    text-wrap: balance;
+  }
+
+  /* Aquarelles dans les angles de la page, sous l'en-tête et le contenu */
+  .page__decor {
+    display: block;
+    z-index: 0;
+  }
+
+  .page__decor--haut {
+    top: 5.5rem;
+    left: -4.5rem;
+    width: 260px;
+  }
+
+  .page__decor--bas {
+    right: -3rem;
+    bottom: -4.5rem;
+    width: 230px;
+  }
+}
