@@ -75,8 +75,8 @@ export const wedding = {
   },
 
   site: {
-    // À REMPLACER — adresse publique du site, sans barre oblique finale.
-    url: 'https://mariage-marie-christelle-patrice.vercel.app',
+    // Adresse publique du site, sans barre oblique finale.
+    url: 'https://invitation-mariage-pi.vercel.app',
     titre: 'Marie-Christelle & Patrice — Invitation',
     description: 'Vous êtes invité(e) à notre mariage. Ouvrez votre invitation personnelle.',
     // {nom} et {lien} sont remplacés par `npm run liens`.

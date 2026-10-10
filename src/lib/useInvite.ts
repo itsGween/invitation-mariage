@@ -14,6 +14,12 @@ export type EtatInvite =
   | { etat: 'invalide' }
   | { etat: 'ok'; nom: string };
 
+// Espace insécable après « M. », « Mme » et « Abbé » : une civilité ne reste
+// jamais seule en fin de ligne.
+export function nomAffiche(nom: string): string {
+  return nom.replace(/(^|\s)(M\.|Mme|Abbé) /g, '$1$2 ');
+}
+
 function codeDansUrl(): string | null {
   const brut = new URLSearchParams(window.location.search).get('i');
   if (!brut) return null;
@@ -26,7 +32,7 @@ async function chercher(code: string): Promise<string | null> {
   const { id, cle } = await deriver(code, sel, iterations);
   const entree = (donnees as InviteChiffre[]).find((e) => e.id === id);
   if (!entree) return null;
-  return dechiffrerNom(cle, entree.iv, entree.nom);
+  return nomAffiche(await dechiffrerNom(cle, entree.iv, entree.nom));
 }
 
 export function useInvite(): EtatInvite {

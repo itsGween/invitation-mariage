@@ -24,8 +24,9 @@ const FICHIER_LIENS = path.join(racine, 'liens.csv');
 const FICHIER_DONNEES = path.join(racine, 'src', 'data', 'invites.json');
 
 // « anne-sophie  d'almeida » → « Anne-Sophie D'Almeida »
+// « m et mme  kanga émile » → « M. et Mme Kanga Émile »
 function nettoyerNom(brut) {
-  return brut
+  const nom = brut
     .replace(/^﻿/, '')
     .replace(/^["']+|["';,]+$/g, '')
     .replace(/[’`]/g, "'")
@@ -35,6 +36,27 @@ function nettoyerNom(brut) {
     .trim()
     .toLocaleLowerCase('fr')
     .replace(/(^|[\s'-])(\p{L})/gu, (_, avant, lettre) => avant + lettre.toLocaleUpperCase('fr'));
+  return civilites(nom);
+}
+
+// Civilités en tête de nom : « M. » avec son point, « Mme » sans point,
+// « Abbé ». Le mot « et » reste en minuscule (« M. et Mme », « Awa et Jean »).
+const CIVILITES = new Map([
+  ['m', 'M.'],
+  ['m.', 'M.'],
+  ['mme', 'Mme'],
+  ['mme.', 'Mme'],
+  ['abbé', 'Abbé'],
+]);
+
+function civilites(nom) {
+  const mots = nom.split(' ');
+  const civilite = (mot) => CIVILITES.get((mot ?? '').toLocaleLowerCase('fr'));
+  for (let i = 0; i < mots.length; i++) {
+    if (civilite(mots[i])) mots[i] = civilite(mots[i]);
+    else if (mots[i] !== 'Et') break;
+  }
+  return mots.join(' ').replace(/ Et (?=\S)/g, ' et ');
 }
 
 // Clé de comparaison : insensible à la casse et aux accents.
