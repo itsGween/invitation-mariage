@@ -10,6 +10,8 @@ captures/
 # Données personnelles des invités : ne jamais versionner
 invites.csv
 liens.csv
+liens.xlsx
+liens.docx
 liens-invitations.docx
 invites.codes.json
 

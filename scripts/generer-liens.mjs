@@ -1,6 +1,6 @@
 // npm run liens — script local, jamais déployé.
 // Lit invites.csv, attribue un code à chaque invité, écrit les données
-// chiffrées du site et exporte liens.csv.
+// chiffrées du site et exporte liens.csv, liens.xlsx et liens.docx.
 
 import { readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -16,11 +16,14 @@ import {
   dechiffrerNom,
   deriver,
 } from '../src/lib/crypto.ts';
+import { ecrireDocx, ecrireXlsx } from './exports-liens.mjs';
 
 const racine = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const FICHIER_INVITES = path.join(racine, 'invites.csv');
 const FICHIER_CODES = path.join(racine, 'invites.codes.json');
 const FICHIER_LIENS = path.join(racine, 'liens.csv');
+const FICHIER_XLSX = path.join(racine, 'liens.xlsx');
+const FICHIER_DOCX = path.join(racine, 'liens.docx');
 const FICHIER_DONNEES = path.join(racine, 'src', 'data', 'invites.json');
 
 // « anne-sophie  d'almeida » → « Anne-Sophie D'Almeida »
@@ -143,17 +146,38 @@ donnees.sort((a, b) => (a.id < b.id ? -1 : 1));
 
 // 4. Écriture
 const base = wedding.site.url.replace(/\/+$/, '');
-const lignes = [['nom', 'lien', 'message'].map(csv).join(';')];
-for (const nom of noms) {
+// Dans l'ordre de invites.csv
+const invites = noms.map((nom) => {
   const lien = `${base}/?i=${codes[nom]}`;
   const message = wedding.site.message.replaceAll('{nom}', nom).replaceAll('{lien}', lien);
-  lignes.push([nom, lien, message].map(csv).join(';'));
-}
+  return { nom, lien, message };
+});
+const lignes = [
+  ['nom', 'lien', 'message'].map(csv).join(';'),
+  ...invites.map(({ nom, lien, message }) => [nom, lien, message].map(csv).join(';')),
+];
 
 await writeFile(FICHIER_DONNEES, JSON.stringify(donnees, null, 2) + '\n');
 await writeFile(FICHIER_CODES, JSON.stringify(codes, null, 2) + '\n');
 // BOM + point-virgule : s'ouvre directement dans Excel en français.
 await writeFile(FICHIER_LIENS, '﻿' + lignes.join('\r\n') + '\r\n');
+
+// Excel et Word, régénérés à chaque exécution. Un fichier resté ouvert dans
+// Excel ou Word est verrouillé : on le signale sans interrompre le reste.
+const titre = `Mariage de ${wedding.maries.elle} & ${wedding.maries.lui}`;
+const exportsEcrits = ['liens.csv'];
+for (const [nomFichier, ecrire] of [
+  ['liens.xlsx', () => ecrireXlsx(FICHIER_XLSX, invites)],
+  ['liens.docx', () => ecrireDocx(FICHIER_DOCX, invites, titre)],
+]) {
+  try {
+    await ecrire();
+    exportsEcrits.push(nomFichier);
+  } catch (erreur) {
+    if (erreur.code !== 'EBUSY' && erreur.code !== 'EPERM') throw erreur;
+    console.warn(`  ! ${nomFichier} n'a pas pu être mis à jour : fermez-le puis relancez la commande.`);
+  }
+}
 
 console.log(`${noms.length} invité(s) actif(s), dont ${nouveaux.length} nouveau(x).`);
 for (const nom of nouveaux) console.log(`  + ${nom}`);
@@ -165,4 +189,4 @@ if (doublons.length) {
   console.warn(`${doublons.length} doublon(s) ignoré(s) :`);
   for (const d of doublons) console.warn(`  ! ${d}`);
 }
-console.log('Écrit : src/data/invites.json, liens.csv, invites.codes.json');
+console.log(`Écrit : src/data/invites.json, invites.codes.json, ${exportsEcrits.join(', ')}`);

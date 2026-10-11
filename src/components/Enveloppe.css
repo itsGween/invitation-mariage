@@ -1,7 +1,12 @@
 .enveloppe {
+  /* Rabat un peu plus clair, pans latéraux un peu plus sombres, pan du bas
+     à la teinte de base. */
+  --enveloppe-rabat: color-mix(in srgb, var(--enveloppe) 91%, var(--ivoire));
+  --enveloppe-cote: color-mix(in srgb, var(--enveloppe) 78%, var(--vert-encre));
+
   position: relative;
   width: min(100%, 21.5rem);
-  aspect-ratio: 3 / 2;
+  aspect-ratio: 4 / 3;
   perspective: 1800px;
 }
 
@@ -22,11 +27,13 @@
 
 .enveloppe__dos {
   z-index: 0;
-  background: var(--sauge-profonde);
+  background: var(--enveloppe);
   border-radius: 6px;
+  /* ombre portée diffuse, décalée vers le bas */
   box-shadow:
-    0 2px 4px rgb(var(--ombre-rgb) / 0.2),
-    0 26px 36px -20px rgb(var(--ombre-rgb) / 0.6);
+    0 3px 6px rgb(var(--ombre-rgb) / 0.16),
+    0 22px 30px -12px rgb(var(--ombre-rgb) / 0.38),
+    0 44px 60px -22px rgb(var(--ombre-rgb) / 0.4);
 }
 
 .enveloppe__dos .enveloppe__doublure {
@@ -45,39 +52,53 @@
   visibility: hidden;
 }
 
-.enveloppe__papier {
-  fill: var(--sauge-profonde);
-}
-
-.enveloppe__nuance {
-  fill: var(--vert-encre);
-}
-.enveloppe__nuance--gauche {
-  opacity: 0.14;
-}
-.enveloppe__nuance--droite {
-  opacity: 0.07;
-}
-
-.enveloppe__pan-bas {
-  fill: var(--sauge-profonde);
-  stroke: rgb(var(--ombre-rgb) / 0.35);
-  stroke-width: 0.8;
-  stroke-linejoin: round;
-  filter: drop-shadow(0 -1.500px 2px rgb(var(--ombre-rgb) / 0.25));
-}
-
-.enveloppe__ombre-rabat {
-  fill: rgb(var(--ombre-rgb) / 0.4);
-  filter: blur(4px);
-}
-
 .enveloppe__devant {
   z-index: 3;
 }
 
-.enveloppe__rabat {
+.enveloppe__pan-cote {
+  fill: var(--enveloppe-cote);
+}
+
+/* Les plis sont rendus par des ombres douces, sans trait */
+.enveloppe__pan-bas {
+  fill: var(--enveloppe);
+  filter: drop-shadow(0 -2px 3px rgb(var(--ombre-rgb) / 0.42));
+}
+
+.enveloppe__lumiere-claire {
+  stop-color: var(--ivoire);
+  stop-opacity: 0.06;
+}
+.enveloppe__lumiere-neutre {
+  stop-color: var(--ivoire);
+  stop-opacity: 0;
+}
+.enveloppe__lumiere-sombre {
+  stop-color: var(--vert-encre);
+  stop-opacity: 0.3;
+}
+
+/* Ombre fine du rabat sur le corps de l'enveloppe */
+.enveloppe__ombre-rabat {
+  fill: rgb(var(--ombre-rgb) / 0.55);
+  filter: blur(3px);
+}
+
+/* Brindille glissée sur le côté gauche, à distance du sceau */
+.enveloppe > .enveloppe__brindille {
   z-index: 4;
+  inset: auto;
+  top: 40%;
+  left: -7%;
+  width: 27%;
+  height: auto;
+  rotate: -14deg;
+  filter: drop-shadow(1px 3px 3px rgb(var(--ombre-rgb) / 0.4));
+}
+
+.enveloppe__rabat {
+  z-index: 5;
   transform-origin: 50% 0;
   transform-style: preserve-3d;
 }
@@ -95,20 +116,25 @@
   transform: rotateX(180deg);
 }
 
-.enveloppe__reflet {
-  fill: var(--ivoire);
-  opacity: 0.1;
-  stroke: rgb(var(--ombre-rgb) / 0.4);
-  stroke-width: 0.8;
+.enveloppe__rabat-papier {
+  fill: var(--enveloppe-rabat);
 }
 
-.enveloppe__sceau {
-  z-index: 5;
+/* Liseré clair d'un pixel sur le bord du rabat */
+.enveloppe__lisere {
+  fill: none;
+  stroke: rgb(250 246 240 / 0.5);
+  stroke-width: 1px;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.enveloppe > .enveloppe__sceau {
+  z-index: 6;
   inset: auto;
-  left: 50%;
   top: 59%;
-  width: 42%;
+  left: 50%;
+  width: 34%;
   height: auto;
-  aspect-ratio: 1;
   translate: -50% -50%;
 }

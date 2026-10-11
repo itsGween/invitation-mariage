@@ -1,6 +1,8 @@
 :root {
   --sauge-claire: #b9c7ae;
   --sauge-profonde: #8fa385;
+  /* vert de l'enveloppe, prélevé sur la maquette */
+  --enveloppe: #717c60;
   --blush: #ddb4b0;
   --rose-ancien: #c9958f;
   --ivoire: #faf6f0;

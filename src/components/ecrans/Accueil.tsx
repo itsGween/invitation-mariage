@@ -1,4 +1,3 @@
-import { wedding } from '../../config/wedding.ts';
 import { Bouton } from '../Bouton.tsx';
 import { Enveloppe } from '../Enveloppe.tsx';
 import { Illustration } from '../Illustration.tsx';
@@ -38,7 +37,7 @@ export function Accueil({ nom, ouverture, onOuvrir }: Props) {
           )}
         </h1>
 
-        <Enveloppe monogramme={wedding.maries.monogramme} ouverte={ouverture}>
+        <Enveloppe ouverte={ouverture}>
           {nom && (
             <p className="accueil__carte">
               <span>Bonjour</span>

@@ -59,8 +59,11 @@ Si vous changez les prénoms ou la date, régénérez l'image d'aperçu
    npm run liens
    ```
 
-3. Récupérez `liens.csv` (colonnes : nom, lien, message prêt à envoyer). Il
-   s'ouvre directement dans Excel.
+3. Récupérez les liens dans le format qui vous convient : `liens.xlsx`
+   (tableau avec une colonne « Envoyé » à cocher), `liens.docx` (une fiche
+   par invité : nom, lien, message prêt à copier) ou `liens.csv`. Fermez ces
+   fichiers dans Excel et Word avant de relancer la commande, sinon ils ne
+   peuvent pas être mis à jour.
 4. Redéployez le site (voir plus bas) : un nouveau lien ne fonctionne
    qu'une fois `src/data/invites.json` mis en ligne.
 
@@ -78,11 +81,11 @@ Fichiers produits :
 | Fichier | Contenu | Git |
 | --- | --- | --- |
 | `src/data/invites.json` | noms chiffrés, lus par le site | à versionner |
-| `liens.csv` | nom, lien, message | ignoré |
+| `liens.csv`, `liens.xlsx`, `liens.docx` | nom, lien, message | ignorés |
 | `invites.codes.json` | correspondance nom / code | ignoré |
 
-`invites.csv`, `liens.csv` et `invites.codes.json` contiennent la liste en
-clair : gardez-les sur votre ordinateur, avec une copie de sauvegarde de
+`invites.csv`, les fichiers `liens.*` et `invites.codes.json` contiennent la
+liste en clair : gardez-les sur votre ordinateur, avec une copie de sauvegarde de
 `invites.codes.json`. Sans ce fichier, la commande attribuerait de nouveaux
 codes à tout le monde.
 
@@ -104,6 +107,10 @@ Pour en remplacer une, gardez **le même nom de fichier et le même cadrage**
 (bouquet d'angle ou gerbe diagonale). Si les dimensions en pixels changent,
 mettez-les à jour dans le tableau `DIMENSIONS` de
 `src/components/Illustration.tsx`.
+
+Le sceau de cire de l'enveloppe est l'image `sceau.webp` du même dossier
+(480 px, fond transparent). Le monogramme y est gravé : si les initiales
+changent, il faut remplacer cette image.
 
 Le dossier `illustrations-mariage/` (originaux et maquette) n'est pas
 utilisé par le site et n'est pas versionné : gardez-en une copie.
