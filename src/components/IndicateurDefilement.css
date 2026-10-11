@@ -1,0 +1,104 @@
+/* Ancre de hauteur nulle : n'occupe aucune place entre la carte et les Détails. */
+.indicateur {
+  --indicateur-bas: 0.5rem;
+
+  position: sticky;
+  bottom: env(safe-area-inset-bottom, 0px);
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Direction A : quand la carte tient dans l'écran, l'indicateur se place
+   au-dessus du bas du cadre doré et du feuillage du bouquet, à l'intérieur
+   du cadre (même échelle que la carte, voir --l dans Invitation.css). */
+.indicateur--direction-a {
+  --indicateur-bas: calc(min(100vw, 30rem) * 0.175);
+}
+
+/* Collé au bas de l'écran par-dessus la carte : au plus près du bord. */
+.indicateur.indicateur--voile {
+  --indicateur-bas: 0.5rem;
+}
+
+.indicateur__lien {
+  position: absolute;
+  bottom: var(--indicateur-bas);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  /* zone d'appui plus large que le dessin */
+  padding: 0.7rem 1.1rem 0.4rem;
+  color: var(--or-texte);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.2em;
+  text-decoration: none;
+  text-transform: uppercase;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: auto;
+  transition:
+    opacity 0.6s ease,
+    visibility 0s linear 0.6s;
+}
+
+/* compense l'espacement après la dernière lettre */
+.indicateur__libelle {
+  margin-right: -0.2em;
+}
+
+.indicateur__chevron {
+  display: block;
+  color: var(--or);
+}
+
+.indicateur--visible .indicateur__lien {
+  opacity: 0.8;
+  visibility: visible;
+  transition: opacity 0.6s ease;
+}
+
+.indicateur__lien:focus-visible {
+  opacity: 1;
+}
+
+/* Voile ivoire, seulement quand l'indicateur passe par-dessus la carte */
+.indicateur--voile::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
+  left: 0;
+  height: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(to bottom, rgb(250 246 240 / 0), var(--ivoire) 44%);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.indicateur--voile.indicateur--visible::before {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .indicateur--visible .indicateur__chevron {
+    animation: indicateur-chevron 2s ease-in-out infinite;
+  }
+}
+
+@keyframes indicateur-chevron {
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+/* À partir de 1024 px les Détails sont déjà visibles à côté de la carte */
+@media (min-width: 1024px) {
+  .indicateur {
+    display: none;
+  }
+}

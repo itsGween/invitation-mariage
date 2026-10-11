@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { wedding, type Direction } from '../../config/wedding.ts';
 import { Illustration } from '../Illustration.tsx';
+import { IndicateurDefilement } from '../IndicateurDefilement.tsx';
 import { Monogramme } from '../Monogramme.tsx';
 import { Separateur } from '../Separateur.tsx';
 import { Details } from './Details.tsx';
@@ -51,6 +52,12 @@ export function PageInvitation({ nom, direction }: Props) {
           <p className="page__accroche-texte">{wedding.accroche.texte}</p>
         </aside>
         <Invitation nom={nom} direction={direction} />
+        <IndicateurDefilement
+          cible="details"
+          libelle="Détails"
+          description="Voir les détails"
+          className={`indicateur--direction-${direction.toLowerCase()}`}
+        />
         <Details />
       </main>
     </div>

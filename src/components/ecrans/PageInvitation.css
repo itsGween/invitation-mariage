@@ -2,6 +2,8 @@
   position: relative;
   min-height: 100svh;
   overflow: hidden;
+  /* clip ne crée pas de zone de défilement : l'indicateur collant en dépend */
+  overflow: clip;
 }
 
 .page__colonnes:focus {
