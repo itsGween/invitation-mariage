@@ -73,10 +73,12 @@ courriel). `&rsvp=echec` simule un échec, `&rsvp=lent` un envoi qui dure.
    ```
 
 3. Récupérez les liens dans `liens.xlsx` (colonne « Envoyé » à cocher) ou
-   `liens.csv`. Pour le document Word à lire sur téléphone, lancez
-   `npm run document` : il produit
-   `Invitations-Mariage-Marie-Christelle-Patrice.docx`. Fermez ces fichiers
-   dans Excel et Word avant de relancer les commandes.
+   `liens.csv`. Pour le document à lire sur téléphone, lancez `npm run pdf`
+   (PDF A5 imprimé par Chrome, liens cliquables) ou `npm run document`
+   (version Word) : ils produisent
+   `Invitations-Mariage-Marie-Christelle-Patrice.pdf` ou `.docx`, et
+   régénèrent `liens.xlsx`. Fermez ces fichiers avant de relancer les
+   commandes.
 4. Redéployez le site (voir plus bas) : un nouveau lien ne fonctionne
    qu'une fois `src/data/invites.json` mis en ligne.
 
@@ -96,7 +98,7 @@ Fichiers produits :
 | Fichier | Contenu | Git |
 | --- | --- | --- |
 | `src/data/invites.json` | noms chiffrés, lus par le site | à versionner |
-| `liens.csv`, `liens.xlsx`, document Word | nom, lien, message | ignorés |
+| `liens.csv`, `liens.xlsx`, documents PDF et Word | nom, lien, message | ignorés |
 | `invites.codes.json` | correspondance nom / code | ignoré |
 
 `invites.csv`, les fichiers `liens.*` et `invites.codes.json` contiennent la

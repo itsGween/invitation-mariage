@@ -2,7 +2,7 @@
 // document-invitations.mjs).
 // `invites` : [{ nom, lien, message }], dans l'ordre de invites.csv.
 
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import ExcelJS from 'exceljs';
 import {
   AlignmentType,
@@ -166,4 +166,42 @@ export async function ecrireDocument(fichier, invites, { titre, apercu, destinat
   });
 
   await writeFile(fichier, await Packer.toBuffer(document));
+}
+
+// CSV « ; » entre guillemets, tel qu'écrit par generer-liens.mjs
+function lireCsv(contenu) {
+  const lignes = [];
+  let ligne = [];
+  let champ = '';
+  let entreGuillemets = false;
+  for (let i = 0; i < contenu.length; i++) {
+    const c = contenu[i];
+    if (entreGuillemets) {
+      if (c === '"' && contenu[i + 1] === '"') {
+        champ += '"';
+        i++;
+      } else if (c === '"') entreGuillemets = false;
+      else champ += c;
+    } else if (c === '"') entreGuillemets = true;
+    else if (c === ';') {
+      ligne.push(champ);
+      champ = '';
+    } else if (c === '\n') {
+      ligne.push(champ);
+      lignes.push(ligne);
+      ligne = [];
+      champ = '';
+    } else if (c !== '\r') champ += c;
+  }
+  if (champ || ligne.length) lignes.push([...ligne, champ]);
+  return lignes;
+}
+
+// Lit liens.csv : le lien d'aperçu (nomApercu) est mis à part, les autres
+// invités restent dans l'ordre de invites.csv.
+export async function lireLiens(fichier, nomApercu) {
+  const [, ...lignes] = lireCsv((await readFile(fichier, 'utf8')).replace(/^﻿/, ''));
+  const tous = lignes.filter((l) => l[0]).map(([nom, lien, message]) => ({ nom, lien, message }));
+  const apercu = tous.find((invite) => invite.nom === nomApercu) ?? null;
+  return { apercu, invites: tous.filter((invite) => invite !== apercu), tous };
 }
