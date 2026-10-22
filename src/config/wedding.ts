@@ -19,9 +19,6 @@ export const wedding = {
   // sont calculés à partir de cette date.
   date: '2026-11-14',
 
-  // Heure affichée sous la date
-  heure: '13h30',
-
   // 'A' : cadre doré et roses — 'B' : aquarelle aérienne
   direction: 'A' as Direction,
 
@@ -35,7 +32,7 @@ export const wedding = {
     // {nom} est remplacé par le nom de l'invité.
     salutation: 'Bonjour {nom},',
     texte:
-      "C'est le cœur rempli de gratitude que nous nous dirons « oui » devant Dieu, en recevant le sacrement du mariage. Votre présence à nos côtés, en ce jour béni, sera pour nous le plus beau des cadeaux. Nous serions heureux de partager avec vous ce moment de prière, puis de fête.",
+      "C’est avec un cœur rempli de gratitude et de joie que nous nous unirons devant Dieu par le sacrement du mariage. Votre présence en ce jour béni sera pour nous le plus précieux des cadeaux, et nous serions honorés de partager ce moment unique avec vous.",
   },
 
   programme: {
@@ -49,7 +46,7 @@ export const wedding = {
       },
       {
         heure: '13h30',
-        titre: 'Repas partagé (déjeuner)',
+        titre: 'Déjeuner',
         lieu: "à l'espace Splendide",
         icone: 'couverts' as Icone,
       },
@@ -68,7 +65,7 @@ export const wedding = {
         lien: 'https://www.google.com/maps/search/?api=1&query=92XH%2BG9W%20Abidjan',
       },
       {
-        titre: 'Déjeuner partagé',
+        titre: 'Déjeuner',
         lignes: ["L'espace Splendide", 'Angré 7ème tranche, Cocody'],
         icone: 'couverts' as Icone,
         lien: 'https://www.google.com/maps/search/?api=1&query=92Q8%2B2F6%20Abidjan',
