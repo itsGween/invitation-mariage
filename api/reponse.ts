@@ -8,7 +8,7 @@ import { wedding } from '../src/config/wedding.ts';
 import { codeValide, nomDepuisCode } from '../src/lib/invites.ts';
 
 const EXPEDITEUR = 'Invitation Mariage <onboarding@resend.dev>';
-const DESTINATAIRE_PAR_DEFAUT = 'kangahhansberryl@gmail.com';
+const DESTINATAIRE_PAR_DEFAUT = 'kangahhansberryl7@outlook.com';
 const FUSEAU = 'Africa/Abidjan';
 
 type Reponse = 'present' | 'absent';

@@ -14,7 +14,7 @@ import { ecrireDocument, ecrireXlsx } from './exports-liens.mjs';
 // Nom dont le lien sert d'aperçu : présenté à part, hors de la liste.
 const NOM_APERCU = 'Gween Kangah';
 // Adresse citée dans le mode d'emploi : celle qui reçoit les réponses.
-const DESTINATAIRE = process.env.RSVP_DESTINATAIRE || 'kangahhansberryl@gmail.com';
+const DESTINATAIRE = process.env.RSVP_DESTINATAIRE || 'kangahhansberryl7@outlook.com';
 
 const racine = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const FICHIER_LIENS = path.join(racine, 'liens.csv');
