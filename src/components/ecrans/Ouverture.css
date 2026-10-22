@@ -4,7 +4,8 @@
    0,85 s  la carte sort, légèrement inclinée
    1,50 s  fondu vers l'invitation */
 
-.accueil--ouverture .accueil__adresse,
+.accueil--ouverture .accueil__titre,
+.accueil--ouverture .accueil__couple,
 .accueil--ouverture .accueil__bouton {
   opacity: 0;
   transition: opacity 0.3s ease;

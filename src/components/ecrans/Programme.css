@@ -1,0 +1,112 @@
+.programme {
+  padding: 3.5rem 1.5rem 3.25rem;
+}
+
+/* Feuillage doré discret dans deux angles : l'aquarelle est passée en
+   camaïeu doré pour ne pas faire de taches roses sur le vert. */
+.programme__decor {
+  width: 160px;
+  opacity: 0.35;
+  filter: sepia(1) saturate(1.6) brightness(0.95);
+}
+
+.programme__decor--haut {
+  top: -2.5rem;
+  right: -3.5rem;
+}
+
+.programme__decor--bas {
+  bottom: -2.75rem;
+  left: -3.5rem;
+  rotate: 180deg;
+}
+
+.programme__contenu {
+  position: relative;
+  z-index: 1;
+  max-width: 23rem;
+  margin-inline: auto;
+}
+
+.programme__titre {
+  color: var(--or-clair);
+  font-size: 3rem;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.programme__etapes,
+.programme__lieux {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.programme__etapes {
+  margin-top: 0.75rem;
+}
+
+.programme__etape {
+  display: grid;
+  grid-template-columns: 2.25rem 3.6rem 1fr;
+  align-items: start;
+  gap: 0.75rem;
+  padding-block: 0.8rem;
+  line-height: 1.3;
+}
+
+.programme__etape + .programme__etape {
+  border-top: 1px solid rgb(217 188 130 / 0.3);
+}
+
+.programme__icone {
+  flex: none;
+  color: var(--or-clair);
+  font-size: 2.1rem;
+  stroke-width: 1;
+}
+
+.programme__heure {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.programme__intitule {
+  display: block;
+  font-size: 1.1875rem;
+  font-weight: 600;
+}
+
+.programme__lieu {
+  display: block;
+  font-size: 1rem;
+}
+
+.programme__separateur {
+  margin-block: 1.4rem 0.6rem;
+  color: var(--or-clair);
+}
+
+.programme__lieux {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* Cartes d'itinéraire : contour doré fin, coins arrondis */
+.programme__carte {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr;
+  align-items: start;
+  gap: 0.75rem 0.9rem;
+  padding: 1rem 1rem 1.1rem;
+  border: 1px solid rgb(217 188 130 / 0.75);
+  border-radius: 0.9rem;
+  line-height: 1.3;
+}
+
+.programme__bouton {
+  grid-column: 1 / -1;
+  min-height: 2.9rem;
+  font-size: 1.0625rem;
+}

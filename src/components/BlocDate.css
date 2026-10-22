@@ -1,0 +1,43 @@
+.bloc-date {
+  display: flex;
+  text-align: center;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bloc-date__date {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  justify-items: stretch;
+}
+
+.bloc-date__cote {
+  padding: 0.5em 0.9em 0.45em;
+  border-block: 1px solid var(--or);
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+.bloc-date__jour {
+  padding: 0 0.32em;
+  border-inline: 1px solid var(--or);
+  color: var(--or);
+  font-size: 2.75rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.bloc-date__annee {
+  grid-column: 1 / -1;
+  margin-top: 0.45rem;
+  font-size: 1.1875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+}
+
+.bloc-date__heure {
+  font-size: 1.0625rem;
+  line-height: 1.3;
+}

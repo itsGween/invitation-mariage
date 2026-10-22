@@ -1,38 +1,20 @@
 import { useEffect, useState } from 'react';
-import { wedding } from '../config/wedding.ts';
-import donnees from '../data/invites.json';
-import {
-  codeBienForme,
-  dechiffrerNom,
-  deriver,
-  normaliserCode,
-  type InviteChiffre,
-} from './crypto.ts';
+import { codeValide, nomDepuisCode } from './invites.ts';
 
 export type EtatInvite =
   | { etat: 'chargement' }
   | { etat: 'invalide' }
-  | { etat: 'ok'; nom: string };
+  | { etat: 'ok'; nom: string; code: string };
 
-// Espace insécable après « M. », « Mme » et « Abbé » : une civilité ne reste
-// jamais seule en fin de ligne.
+// Espace insécable après « M. », « Mme », « Mlle » et « Abbé » : une civilité
+// ne reste jamais seule en fin de ligne. Affichage uniquement : les messages
+// et les courriels gardent l'espace normale.
 export function nomAffiche(nom: string): string {
-  return nom.replace(/(^|\s)(M\.|Mme|Abbé) /g, '$1$2 ');
+  return nom.replace(/(^|\s)(M\.|Mme|Mlle|Abbé) /g, '$1$2 ');
 }
 
 function codeDansUrl(): string | null {
-  const brut = new URLSearchParams(window.location.search).get('i');
-  if (!brut) return null;
-  const code = normaliserCode(brut);
-  return codeBienForme(code) ? code : null;
-}
-
-async function chercher(code: string): Promise<string | null> {
-  const { sel, iterations } = wedding.acces;
-  const { id, cle } = await deriver(code, sel, iterations);
-  const entree = (donnees as InviteChiffre[]).find((e) => e.id === id);
-  if (!entree) return null;
-  return nomAffiche(await dechiffrerNom(cle, entree.iv, entree.nom));
+  return codeValide(new URLSearchParams(window.location.search).get('i'));
 }
 
 export function useInvite(): EtatInvite {
@@ -43,10 +25,11 @@ export function useInvite(): EtatInvite {
     if (!code) return;
     let annule = false;
     // Web Crypto absent (page servie sans HTTPS) : traité comme un lien invalide.
-    chercher(code)
+    nomDepuisCode(code)
       .catch(() => null)
       .then((nom) => {
-        if (!annule) setEtat(nom ? { etat: 'ok', nom } : { etat: 'invalide' });
+        if (annule) return;
+        setEtat(nom ? { etat: 'ok', nom: nomAffiche(nom), code } : { etat: 'invalide' });
       });
     return () => {
       annule = true;

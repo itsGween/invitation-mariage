@@ -1,8 +1,10 @@
 :root {
   --sauge-claire: #b9c7ae;
-  --sauge-profonde: #8fa385;
-  /* vert de l'enveloppe, prélevé sur la maquette */
-  --enveloppe: #717c60;
+  /* aussi la teinte de l'enveloppe */
+  --sauge-profonde: #6f8a63;
+  --enveloppe: var(--sauge-profonde);
+  /* fond des sections Programme et Confirmation, prélevé sur la maquette */
+  --vert-foret: #344733;
   --blush: #ddb4b0;
   --rose-ancien: #c9958f;
   --ivoire: #faf6f0;
@@ -10,7 +12,7 @@
   --or: #bf9b5a;
   /* texte doré sur fond clair */
   --or-texte: #9a7b3f;
-  /* texte doré sur fond vert encre */
+  /* texte doré sur fond vert encre ou vert forêt */
   --or-clair: #d9bc82;
 
   --font-script: 'Pinyon Script', 'Great Vibes', cursive;

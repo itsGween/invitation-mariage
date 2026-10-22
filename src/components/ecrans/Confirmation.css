@@ -1,0 +1,189 @@
+.confirmation {
+  padding: 3.25rem 1.5rem 3rem;
+  text-align: center;
+}
+
+.confirmation__decor--vert {
+  top: -2.5rem;
+  left: -3.5rem;
+  width: 160px;
+  opacity: 0.35;
+  filter: sepia(1) saturate(1.6) brightness(0.95);
+  transform: scaleX(-1);
+}
+
+/* Bouquets réservés au fond ivoire de la version ordinateur */
+.confirmation__decor--fleurs-haut,
+.confirmation__decor--fleurs-bas {
+  display: none;
+}
+
+.confirmation__contenu {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 23rem;
+  margin-inline: auto;
+}
+
+.confirmation__titre {
+  color: var(--or-clair);
+  font-size: 3rem;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.confirmation__separateur {
+  margin-top: 0.4rem;
+  color: var(--or-clair);
+}
+
+.confirmation__texte {
+  margin-top: 1rem;
+  font-size: 1.125rem;
+  line-height: 1.45;
+  text-wrap: balance;
+}
+
+.confirmation__reponse {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  margin-top: 1.6rem;
+}
+
+.confirmation__boutons {
+  display: grid;
+  gap: 0.9rem;
+  width: 100%;
+}
+
+.confirmation__bouton {
+  width: 100%;
+  font-size: 1.0625rem;
+  text-wrap: balance;
+}
+
+.confirmation__message {
+  font-size: 1.1875rem;
+  font-style: italic;
+  line-height: 1.4;
+  text-wrap: balance;
+}
+
+.confirmation__message--merci,
+.confirmation__message--rappel {
+  padding: 1rem 1.1rem;
+  border: 1px solid rgb(217 188 130 / 0.75);
+  border-radius: 0.9rem;
+}
+
+.confirmation__modifier {
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  background: none;
+  color: var(--or-clair);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.confirmation__titre--contact {
+  margin-top: 2.25rem;
+}
+
+.confirmation__contacts {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.confirmation__contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.confirmation__contact:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.confirmation__icone-contact {
+  flex: none;
+  color: var(--or-clair);
+  font-size: 1.4rem;
+}
+
+.confirmation__telephone {
+  white-space: nowrap;
+}
+
+/* Ordinateur : colonne sur fond ivoire fleuri, titres en or */
+@media (min-width: 1024px) {
+  .confirmation.panneau-vert {
+    --focus: var(--or-texte);
+
+    background-color: var(--ivoire);
+    background-image: var(--grain);
+    color: var(--vert-encre);
+  }
+
+  .confirmation__decor--vert {
+    display: none;
+  }
+
+  .confirmation__decor--fleurs-haut,
+  .confirmation__decor--fleurs-bas {
+    display: block;
+    width: 200px;
+  }
+
+  .confirmation__decor--fleurs-haut {
+    top: -3rem;
+    right: -4rem;
+    transform: scaleX(-1);
+  }
+
+  .confirmation__decor--fleurs-bas {
+    right: -4rem;
+    bottom: -3.5rem;
+  }
+
+  .confirmation__titre,
+  .confirmation__modifier {
+    color: var(--or-texte);
+  }
+
+  .confirmation__separateur,
+  .confirmation__icone-contact {
+    color: var(--or);
+  }
+
+  .confirmation .bouton--secondaire {
+    border-color: var(--or);
+    color: var(--vert-encre);
+  }
+
+  .confirmation .bouton--secondaire:hover {
+    background: rgb(191 155 90 / 0.1);
+  }
+
+  .confirmation__message--merci,
+  .confirmation__message--rappel {
+    border-color: var(--or);
+  }
+}

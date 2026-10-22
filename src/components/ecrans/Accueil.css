@@ -1,9 +1,13 @@
+/* Tout tient dans la hauteur de l'écran (360 × 640 compris) : l'illustration
+   et l'enveloppe se règlent sur la hauteur disponible (svh). */
 .accueil {
+  --env: min(62vw, 28svh, 17rem);
+
   position: relative;
   display: grid;
   place-items: center;
   min-height: 100svh;
-  padding: 6.5rem 1.25rem 6rem;
+  padding: clamp(0.75rem, 4svh, 2.5rem) 1rem;
   overflow: hidden;
 }
 
@@ -13,95 +17,79 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(1.75rem, 5.5svh, 3rem);
+  gap: clamp(0.5rem, 2.2svh, 1.5rem);
   width: 100%;
-  max-width: 24rem;
   text-align: center;
 }
 
-.accueil__adresse {
-  width: 100%;
-  /* réserve la place du nom pendant la dérivation du code */
-  min-height: 6.5rem;
+.accueil__titre {
+  display: flex;
+  flex-direction: column;
+  font-size: clamp(2.25rem, min(11.5vw, 7.2svh), 4rem);
+  line-height: 1.02;
+  white-space: nowrap;
 }
 
-.accueil__pour {
-  display: block;
-  font-size: 1.75rem;
+.accueil__scene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.accueil__nom {
-  font-size: clamp(2.75rem, 13vw, 3.75rem);
+.accueil__scene > .accueil__couple {
+  position: relative;
+  width: auto;
+  max-width: 88vw;
+  height: min(46svh, 28rem);
+  object-fit: contain;
 }
 
-/* Gerbes retournées pour épouser les angles haut gauche et bas droit */
+/* L'enveloppe recouvre le bas de l'illustration (les fleurs) */
+.accueil__scene > .enveloppe {
+  z-index: 1;
+  width: var(--env);
+  margin-top: calc(var(--env) * -0.2);
+}
+
+/* Bouquets de roses dans les angles, en grande partie hors de l'écran */
 .accueil__decor--haut {
-  top: -2.6rem;
-  left: -3.4rem;
-  width: 200px;
+  top: calc(min(56vw, 340px) * -0.3);
+  left: calc(min(56vw, 340px) * -0.34);
+  width: min(56vw, 340px);
 }
 
 .accueil__decor--bas {
-  right: -2.2rem;
-  bottom: -3.2rem;
-  width: 140px;
+  right: calc(min(56vw, 340px) * -0.34);
+  bottom: calc(min(56vw, 340px) * -0.3);
+  width: min(56vw, 340px);
 }
 
+/* Carte qui sort de l'enveloppe à l'ouverture */
 .accueil__carte {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 7% 8% 0;
-  font-size: 0.8125rem;
+  padding: 9% 8% 0;
+  font-size: calc(var(--env) * 0.065);
   font-style: italic;
   line-height: 1.3;
   text-align: center;
 }
 
-.accueil__carte-nom {
-  font-size: 1.5rem;
+.accueil__bienvenue {
+  font-size: calc(var(--env) * 0.19);
   font-style: normal;
-  text-wrap: balance;
+  line-height: 1.1;
 }
 
 @media (min-width: 1024px) {
-  .accueil__carte {
-    font-size: 1rem;
-  }
-
-  .accueil__carte-nom {
-    font-size: 1.85rem;
-  }
-
-  .accueil {
-    padding-block: 8rem 7rem;
-  }
-
-  .accueil__contenu {
-    max-width: 30rem;
-  }
-
-  .accueil__contenu .enveloppe {
-    width: 26rem;
-  }
-
-  .accueil__nom {
-    font-size: 4.5rem;
-  }
-
-  .accueil__pour {
-    font-size: 2rem;
-  }
-
   .accueil__decor--haut {
-    top: -4rem;
+    top: -5rem;
     left: -5rem;
-    width: 340px;
   }
 
   .accueil__decor--bas {
-    right: -3rem;
+    right: -5rem;
     bottom: -5rem;
-    width: 250px;
   }
 }

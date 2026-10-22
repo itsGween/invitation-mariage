@@ -3,7 +3,9 @@ import { IconeFleche } from './Icones.tsx';
 import './Bouton.css';
 
 type Props = {
-  variante?: 'principal' | 'secondaire';
+  /** principal : or plein, texte ivoire — clair : or clair sur fond vert —
+   *  secondaire : contour ivoire sur fond vert — contour : contour or sur fond ivoire */
+  variante?: 'principal' | 'clair' | 'secondaire' | 'contour';
   icone?: ReactNode;
   fleche?: boolean;
   children: ReactNode;

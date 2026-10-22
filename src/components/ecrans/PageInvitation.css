@@ -12,31 +12,26 @@
 
 /* Réservés à la version ordinateur */
 .page__entete,
-.page__accroche,
-.page__decor {
+.page__couple {
   display: none;
 }
 
 @media (min-width: 1024px) {
+  .page {
+    display: flex;
+    flex-direction: column;
+  }
+
   .page__entete {
     position: relative;
     z-index: 2;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 2rem;
-    max-width: 82rem;
+    gap: 1.5rem;
     height: 4.25rem;
-    margin-inline: auto;
-    padding-inline: 2.5rem;
-  }
-
-  .page__entete::after {
-    content: '';
-    position: absolute;
-    inset: auto 2.5rem 0;
-    height: 1px;
-    background: rgb(191 155 90 / 0.5);
+    padding-inline: clamp(1.25rem, 2.5vw, 2.5rem);
+    border-bottom: 1px solid rgb(191 155 90 / 0.5);
   }
 
   .page__monogramme {
@@ -45,14 +40,14 @@
 
   .page__ancres {
     display: flex;
-    gap: 2.5rem;
+    gap: clamp(1.1rem, 2.4vw, 2.5rem);
   }
 
   .page__ancres a {
     padding-block: 0.4rem;
-    font-size: 1.125rem;
+    font-size: 1.0625rem;
     font-weight: 600;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
     text-decoration: none;
     border-bottom: 1px solid transparent;
     transition: border-color 0.2s ease;
@@ -62,55 +57,91 @@
     border-bottom-color: var(--or);
   }
 
-  .page__colonnes {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: minmax(14rem, 1fr) auto auto;
-    align-items: center;
-    gap: clamp(1.75rem, 3.2vw, 3.5rem);
-    max-width: 82rem;
-    margin-inline: auto;
-    padding: 2.75rem 2.5rem 4rem;
+  .page__bouton-entete {
+    min-height: 2.5rem;
+    padding-inline: 1.25em;
+    font-size: 1rem;
   }
 
-  .page__accroche {
+  /* Quatre colonnes bord à bord, de la hauteur de l'écran au moins */
+  .page__colonnes {
+    display: grid;
+    flex: 1;
+    /* fractions reprises par --l dans Invitation.css */
+    grid-template-columns: 1.1fr 1fr 1fr 0.95fr;
+    min-height: calc(100svh - 4.25rem);
+    container-type: inline-size;
+  }
+
+  .page__couple {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.5rem;
-    max-width: 21rem;
-    margin-inline: auto;
-    text-align: center;
+    justify-content: center;
+    gap: 1.75rem;
+    padding: 2.5rem 1.5rem;
   }
 
-  .page__accroche-titre {
-    font-size: clamp(3rem, 4.4vw, 4.25rem);
-    line-height: 1.05;
-    text-wrap: balance;
+  .page__couple > .page__couple-image {
+    position: relative;
+    width: 100%;
+    max-width: 24rem;
   }
 
-  .page__accroche-texte {
-    font-size: 1.25rem;
-    line-height: 1.45;
-    text-wrap: balance;
+  .page__colonnes > .programme,
+  .page__colonnes > .confirmation {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2.5rem clamp(1rem, 1.8vw, 2rem);
   }
 
-  /* Aquarelles dans les angles de la page, sous l'en-tête et le contenu */
-  .page__decor {
-    display: block;
-    z-index: 0;
+  .page__colonnes .programme__contenu,
+  .page__colonnes .confirmation__contenu {
+    width: 100%;
   }
 
-  .page__decor--haut {
-    top: 5.5rem;
-    left: -4.5rem;
-    width: 260px;
+  /* Colonnes étroites (dès 1024 px) : typographie proportionnée à la largeur */
+  .page__colonnes .programme__titre,
+  .page__colonnes .confirmation__titre {
+    font-size: clamp(2.1rem, 3.3vw, 3rem);
   }
 
-  .page__decor--bas {
-    right: -3rem;
-    bottom: -4.5rem;
-    width: 230px;
+  .page__colonnes .programme__etape {
+    grid-template-columns: 1.75rem auto 1fr;
+    gap: 0.6rem;
+  }
+
+  .page__colonnes .programme__carte {
+    grid-template-columns: 1.75rem 1fr;
+    gap: 0.6rem 0.7rem;
+    padding: 0.85rem 0.85rem 0.95rem;
+  }
+
+  .page__colonnes .programme__icone {
+    font-size: 1.75rem;
+  }
+
+  .page__colonnes .programme__heure {
+    font-size: clamp(1rem, 1.3vw, 1.25rem);
+  }
+
+  .page__colonnes .programme__intitule {
+    font-size: clamp(0.9375rem, 1.2vw, 1.125rem);
+  }
+
+  .page__colonnes .programme__lieu,
+  .page__colonnes .confirmation__contact {
+    font-size: clamp(0.875rem, 1.1vw, 1rem);
+  }
+
+  .page__colonnes .confirmation__texte {
+    font-size: clamp(1rem, 1.25vw, 1.125rem);
+  }
+
+  .page__colonnes .programme__bouton,
+  .page__colonnes .confirmation__bouton {
+    padding-inline: 1em;
+    font-size: clamp(0.9375rem, 1.15vw, 1.0625rem);
   }
 }

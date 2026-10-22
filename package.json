@@ -8,6 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "liens": "node scripts/generer-liens.mjs",
+    "document": "node scripts/document-invitations.mjs",
     "captures": "node scripts/captures.mjs",
     "apercu": "node scripts/apercu.mjs"
   },

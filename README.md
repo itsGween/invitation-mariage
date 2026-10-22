@@ -1,8 +1,10 @@
 # Invitation de mariage — Marie-Christelle & Patrice
 
-Site statique (Vite + React + TypeScript). Chaque invité reçoit un lien
-personnel du type `https://…/?i=K7XP2M9A` : l'enveloppe porte son nom,
-s'ouvre, puis affiche l'invitation et les détails de la journée.
+Site statique (Vite + React + TypeScript) et une fonction serveur Vercel
+(`api/reponse.ts`). Chaque invité reçoit un lien personnel du type
+`https://…/?i=K7XP2M9A` : l'enveloppe s'ouvre, puis affiche l'invitation à son
+nom, le programme, les itinéraires et la confirmation de présence. Chaque
+réponse est envoyée par courriel.
 
 ## Lancer en local
 
@@ -24,18 +26,10 @@ direction graphique.
 
 ## Modifier les informations
 
-Tout le contenu est dans **`src/config/wedding.ts`** : prénoms, date, heure,
-lieu, lien d'itinéraire, programme, tenue, contact, textes.
-
-À vérifier avant l'envoi (repérés par `À CONFIRMER` / `À REMPLACER` dans le
-fichier) :
-
-- `date`, `heure` et `programme` ;
-- `contact` (courriel et téléphone) ;
-- `site.url` : l'adresse publique du site, utilisée dans les liens envoyés
-  et dans l'aperçu WhatsApp ;
-- `calendrier` : heures de début et de fin de l'événement ajouté au
-  calendrier (en heure d'Abidjan).
+Tout le contenu affiché est dans **`src/config/wedding.ts`** : prénoms, date,
+heure, texte de l'invitation, programme, itinéraires (liens Google Maps),
+textes de la confirmation et messages de remerciement, contact, message
+envoyé aux invités.
 
 `direction` vaut `'A'` (cadre doré et roses) ou `'B'` (aquarelle aérienne).
 
@@ -49,28 +43,49 @@ Si vous changez les prénoms ou la date, régénérez l'image d'aperçu
 > Ne modifiez pas `acces.sel` ni `acces.iterations` après l'envoi des
 > invitations : tous les liens cesseraient de fonctionner.
 
+## Réponses des invités (courriel)
+
+Les boutons « Je confirme ma présence » et « Je regrette… » appellent
+`POST /api/reponse` avec le code du lien. La fonction retrouve le nom (même
+déchiffrement que le site) et envoie un courriel via Resend. Le navigateur
+n'envoie jamais le nom, et ne connaît ni la clé ni le destinataire.
+
+Variables d'environnement Vercel (Production) :
+
+- `RESEND_API_KEY` : clé Resend (obligatoire) ;
+- `RSVP_DESTINATAIRE` : adresse qui reçoit les réponses (facultatif, adresse
+  par défaut définie dans `api/reponse.ts`).
+
+L'objet et le texte des courriels sont dans `api/reponse.ts`. Avec
+l'expéditeur de test `onboarding@resend.dev`, Resend n'accepte d'envoyer
+qu'à l'adresse du compte Resend.
+
+En local (`npm run dev`), l'envoi est simulé (message dans la console, aucun
+courriel). `&rsvp=echec` simule un échec, `&rsvp=lent` un envoi qui dure.
+
 ## Ajouter ou retirer des invités, générer les liens
 
-1. Ouvrez `invites.csv` à la racine et écrivez **un nom par ligne**. Le
-   fichier livré contient deux noms d'essai, à remplacer.
+1. Ouvrez `invites.csv` à la racine et écrivez **un nom par ligne**.
 2. Lancez :
 
    ```bash
    npm run liens
    ```
 
-3. Récupérez les liens dans le format qui vous convient : `liens.xlsx`
-   (tableau avec une colonne « Envoyé » à cocher), `liens.docx` (une fiche
-   par invité : nom, lien, message prêt à copier) ou `liens.csv`. Fermez ces
-   fichiers dans Excel et Word avant de relancer la commande, sinon ils ne
-   peuvent pas être mis à jour.
+3. Récupérez les liens dans `liens.xlsx` (colonne « Envoyé » à cocher) ou
+   `liens.csv`. Pour le document Word à lire sur téléphone, lancez
+   `npm run document` : il produit
+   `Invitations-Mariage-Marie-Christelle-Patrice.docx`. Fermez ces fichiers
+   dans Excel et Word avant de relancer les commandes.
 4. Redéployez le site (voir plus bas) : un nouveau lien ne fonctionne
    qu'une fois `src/data/invites.json` mis en ligne.
 
 Ce que fait la commande :
 
-- elle nettoie les noms (espaces en trop, majuscule à chaque mot, y compris
-  après un tiret ou une apostrophe) et signale les doublons ;
+- elle garde les noms tels qu'écrits (accents, orthographe, majuscules),
+  retire les espaces en trop, normalise les civilités de tête (« M. »,
+  « Mme », « Mlle », « Abbé », « et » et « épouse » en minuscule) et signale
+  les doublons ;
 - elle garde les codes déjà attribués et n'en crée que pour les nouveaux
   noms : vous pouvez la relancer autant de fois que nécessaire ;
 - **retirer un nom de `invites.csv` désactive son lien** au prochain
@@ -81,7 +96,7 @@ Fichiers produits :
 | Fichier | Contenu | Git |
 | --- | --- | --- |
 | `src/data/invites.json` | noms chiffrés, lus par le site | à versionner |
-| `liens.csv`, `liens.xlsx`, `liens.docx` | nom, lien, message | ignorés |
+| `liens.csv`, `liens.xlsx`, document Word | nom, lien, message | ignorés |
 | `invites.codes.json` | correspondance nom / code | ignoré |
 
 `invites.csv`, les fichiers `liens.*` et `invites.codes.json` contiennent la
@@ -126,6 +141,8 @@ Le site doit être servi en HTTPS, ce que Vercel fait par défaut.
 3. Reportez l'adresse obtenue dans `site.url` (`src/config/wedding.ts`),
    relancez `npm run liens` pour que `liens.csv` utilise la bonne adresse,
    puis redéployez.
+4. Ajoutez `RESEND_API_KEY` dans les variables d'environnement du projet
+   Vercel (voir « Réponses des invités »).
 
 Chaque changement de contenu ou de liste d'invités demande un nouveau
 déploiement.
@@ -135,3 +152,5 @@ déploiement.
 - `npm run build` : vérifie les types et construit le site dans `dist/`.
 - `npm run captures -- <nom> "?i=CODE"` : captures à 390 px et 1440 px dans
   `captures/` (serveur de développement lancé, Google Chrome installé).
+- `node scripts/captures-ecrans.mjs captures` : tous les écrans, y compris
+  les états de la confirmation.

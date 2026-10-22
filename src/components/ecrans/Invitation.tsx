@@ -1,7 +1,6 @@
 import { wedding, type Direction } from '../../config/wedding.ts';
-import { dateAffichee } from '../../lib/date.ts';
+import { BlocDate } from '../BlocDate.tsx';
 import { CadreDore } from '../CadreDore.tsx';
-import { IconeCoeur } from '../Icones.tsx';
 import { Illustration } from '../Illustration.tsx';
 import './Invitation.css';
 
@@ -16,7 +15,7 @@ const ECLABOUSSURES = [
 type Props = { nom: string; direction: Direction };
 
 export function Invitation({ nom, direction }: Props) {
-  const { maries, lieu, heure } = wedding;
+  const { maries, invitation } = wedding;
 
   return (
     <section
@@ -67,39 +66,18 @@ export function Invitation({ nom, direction }: Props) {
       )}
 
       <div className="invitation__contenu">
-        <p className="invitation__bonjour">Bonjour {nom},</p>
-        <p className="invitation__intro">
-          Nous avons la joie de vous inviter
-          <br />
-          au mariage de
-        </p>
+        <p className="invitation__bonjour">{invitation.salutation.replace('{nom}', nom)}</p>
+        <p className="invitation__texte">{invitation.texte}</p>
 
         <h1 id="invitation-titre" className="invitation__maries script">
           <span>{maries.elle}</span>
-          <span className="invitation__et">&amp;</span>
-          <span>{maries.lui}</span>
+          <span>
+            <span className="esperluette">&amp;</span> {maries.lui}
+          </span>
         </h1>
 
-        <p className="invitation__quand">
-          <time dateTime={dateAffichee.iso} className="invitation__date">
-            <span className="invitation__date-cote capitales">{dateAffichee.jourSemaine}</span>
-            <span className="invitation__jour">{dateAffichee.jour}</span>
-            <span className="invitation__date-cote capitales">{dateAffichee.mois}</span>
-            <span className="invitation__annee">{dateAffichee.annee}</span>
-          </time>
-          <span className="invitation__heure">{heure}</span>
-        </p>
-
-        <IconeCoeur className="invitation__coeur" />
-
-        <h2 className="invitation__lieu script">{lieu.nom}</h2>
-        <p className="invitation__adresse">
-          {lieu.salle}
-          <br />
-          {lieu.adresse}
-          <br />
-          {lieu.ville}
-        </p>
+        {/* Sur ordinateur, la date passe sous l'illustration du couple */}
+        <BlocDate className="invitation__quand" />
       </div>
     </section>
   );

@@ -10,6 +10,7 @@ const DIMENSIONS = {
   'bouquet-bas-droite': { petit: [595, 600], grand: [991, 1000] },
   'gerbe-roses': { petit: [419, 600], grand: [698, 1000] },
   'gerbe-doree': { petit: [600, 448], grand: [1000, 746] },
+  'couple-arche': { petit: [600, 665], grand: [1000, 1108] },
 } as const;
 
 export type NomIllustration = keyof typeof DIMENSIONS;
@@ -23,9 +24,11 @@ type Props = {
   className?: string;
   /** Retournement horizontal (scaleX(-1)). */
   miroir?: boolean;
+  /** Texte alternatif : sans lui, l'image est purement décorative. */
+  alt?: string;
 };
 
-export function Illustration({ nom, sizes, className = '', miroir = false }: Props) {
+export function Illustration({ nom, sizes, className = '', miroir = false, alt }: Props) {
   const { petit, grand } = DIMENSIONS[nom];
   return (
     <img
@@ -35,8 +38,8 @@ export function Illustration({ nom, sizes, className = '', miroir = false }: Pro
       sizes={sizes}
       width={petit[0]}
       height={petit[1]}
-      alt=""
-      aria-hidden="true"
+      alt={alt ?? ''}
+      aria-hidden={alt ? undefined : true}
       decoding="async"
       draggable={false}
     />

@@ -29,6 +29,24 @@
     0 8px 16px -8px rgb(var(--ombre-rgb) / 0.6);
 }
 
+.bouton--clair {
+  background: linear-gradient(to bottom, #e6cd98, var(--or-clair) 55%, #cfae6f);
+  color: var(--vert-foret);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    0 8px 16px -8px rgb(0 0 0 / 0.45);
+}
+
+.bouton--contour {
+  background: transparent;
+  border-color: var(--or);
+  color: var(--vert-encre);
+}
+
+.bouton--contour:hover {
+  background: rgb(191 155 90 / 0.1);
+}
+
 .bouton--secondaire {
   background: transparent;
   border-color: var(--ivoire);

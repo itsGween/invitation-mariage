@@ -20,7 +20,20 @@ type Props = { variante?: 'ligne' | 'cercle'; className?: string };
 export function Monogramme({ variante = 'ligne', className = '' }: Props) {
   const texte = wedding.maries.monogramme;
   if (variante === 'ligne') {
-    return <span className={`monogramme monogramme--ligne script ${className}`}>{texte}</span>;
+    const [avant, apres] = texte.split('&');
+    return (
+      <span className={`monogramme monogramme--ligne script ${className}`}>
+        {apres === undefined ? (
+          texte
+        ) : (
+          <>
+            {avant}
+            <span className="esperluette">&amp;</span>
+            {apres}
+          </>
+        )}
+      </span>
+    );
   }
 
   const [haut, ...reste] = texte.split(' ');

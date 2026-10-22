@@ -1,6 +1,7 @@
 // npm run liens — script local, jamais déployé.
 // Lit invites.csv, attribue un code à chaque invité, écrit les données
-// chiffrées du site et exporte liens.csv, liens.xlsx et liens.docx.
+// chiffrées du site et exporte liens.csv et liens.xlsx. Le document Word
+// est produit à part : `npm run document`.
 
 import { readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -16,50 +17,49 @@ import {
   dechiffrerNom,
   deriver,
 } from '../src/lib/crypto.ts';
-import { ecrireDocx, ecrireXlsx } from './exports-liens.mjs';
+import { ecrireXlsx } from './exports-liens.mjs';
 
 const racine = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const FICHIER_INVITES = path.join(racine, 'invites.csv');
 const FICHIER_CODES = path.join(racine, 'invites.codes.json');
 const FICHIER_LIENS = path.join(racine, 'liens.csv');
 const FICHIER_XLSX = path.join(racine, 'liens.xlsx');
-const FICHIER_DOCX = path.join(racine, 'liens.docx');
 const FICHIER_DONNEES = path.join(racine, 'src', 'data', 'invites.json');
 
-// « anne-sophie  d'almeida » → « Anne-Sophie D'Almeida »
-// « m et mme  kanga émile » → « M. et Mme Kanga Émile »
-function nettoyerNom(brut) {
-  const nom = brut
-    .replace(/^﻿/, '')
-    .replace(/^["']+|["';,]+$/g, '')
-    .replace(/[’`]/g, "'")
-    .replace(/\s+/g, ' ')
-    .replace(/\s*-\s*/g, '-')
-    .replace(/\s*'\s*/g, "'")
-    .trim()
-    .toLocaleLowerCase('fr')
-    .replace(/(^|[\s'-])(\p{L})/gu, (_, avant, lettre) => avant + lettre.toLocaleUpperCase('fr'));
-  return civilites(nom);
-}
-
-// Civilités en tête de nom : « M. » avec son point, « Mme » sans point,
-// « Abbé ». Le mot « et » reste en minuscule (« M. et Mme », « Awa et Jean »).
+// Le nom est gardé tel qu'écrit dans invites.csv (accents, orthographe,
+// majuscules) : seuls les espaces superflus sont retirés et les civilités de
+// tête normalisées (« M. » avec son point, « Mme », « Mlle », « Abbé »).
+// « et » et « épouse » restent en minuscule.
+// « mme  Kablan » → « Mme Kablan » ; « M Et Mme Ido Serge » → « M. et Mme Ido Serge »
 const CIVILITES = new Map([
   ['m', 'M.'],
   ['m.', 'M.'],
   ['mme', 'Mme'],
   ['mme.', 'Mme'],
+  ['mlle', 'Mlle'],
+  ['mlle.', 'Mlle'],
   ['abbé', 'Abbé'],
 ]);
+const MINUSCULES = new Set(['et', 'épouse']);
 
-function civilites(nom) {
-  const mots = nom.split(' ');
-  const civilite = (mot) => CIVILITES.get((mot ?? '').toLocaleLowerCase('fr'));
-  for (let i = 0; i < mots.length; i++) {
-    if (civilite(mots[i])) mots[i] = civilite(mots[i]);
-    else if (mots[i] !== 'Et') break;
-  }
-  return mots.join(' ').replace(/ Et (?=\S)/g, ' et ');
+function nettoyerNom(brut) {
+  const mots = brut
+    .replace(/^﻿/, '')
+    .replace(/^["']+|["';,]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .filter(Boolean);
+  let enTete = true;
+  return mots
+    .map((mot) => {
+      const bas = mot.toLocaleLowerCase('fr');
+      if (enTete && CIVILITES.has(bas)) return CIVILITES.get(bas);
+      if (MINUSCULES.has(bas)) return bas;
+      enTete = false;
+      return mot;
+    })
+    .join(' ');
 }
 
 // Clé de comparaison : insensible à la casse et aux accents.
@@ -162,21 +162,15 @@ await writeFile(FICHIER_CODES, JSON.stringify(codes, null, 2) + '\n');
 // BOM + point-virgule : s'ouvre directement dans Excel en français.
 await writeFile(FICHIER_LIENS, '﻿' + lignes.join('\r\n') + '\r\n');
 
-// Excel et Word, régénérés à chaque exécution. Un fichier resté ouvert dans
-// Excel ou Word est verrouillé : on le signale sans interrompre le reste.
-const titre = `Mariage de ${wedding.maries.elle} & ${wedding.maries.lui}`;
+// Excel, régénéré à chaque exécution. Un fichier resté ouvert dans Excel
+// est verrouillé : on le signale sans interrompre le reste.
 const exportsEcrits = ['liens.csv'];
-for (const [nomFichier, ecrire] of [
-  ['liens.xlsx', () => ecrireXlsx(FICHIER_XLSX, invites)],
-  ['liens.docx', () => ecrireDocx(FICHIER_DOCX, invites, titre)],
-]) {
-  try {
-    await ecrire();
-    exportsEcrits.push(nomFichier);
-  } catch (erreur) {
-    if (erreur.code !== 'EBUSY' && erreur.code !== 'EPERM') throw erreur;
-    console.warn(`  ! ${nomFichier} n'a pas pu être mis à jour : fermez-le puis relancez la commande.`);
-  }
+try {
+  await ecrireXlsx(FICHIER_XLSX, invites);
+  exportsEcrits.push('liens.xlsx');
+} catch (erreur) {
+  if (erreur.code !== 'EBUSY' && erreur.code !== 'EPERM') throw erreur;
+  console.warn("  ! liens.xlsx n'a pas pu être mis à jour : fermez-le puis relancez la commande.");
 }
 
 console.log(`${noms.length} invité(s) actif(s), dont ${nouveaux.length} nouveau(x).`);

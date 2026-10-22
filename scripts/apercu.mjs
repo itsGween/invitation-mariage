@@ -16,28 +16,30 @@ const date = new Intl.DateTimeFormat('fr-FR', {
 
 const html = `<!doctype html>
 <html lang="fr"><head><meta charset="utf-8">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Pinyon+Script&display=block">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Great+Vibes&family=Pinyon+Script&display=block">
 <style>
   body { margin: 0; width: 1200px; height: 630px; position: relative; overflow: hidden;
     background: #FAF6F0; color: #56634F; font-family: 'Cormorant Garamond', serif;
-    display: grid; place-items: center; text-align: center;
+    display: flex; align-items: center; justify-content: center; gap: 56px;
     font-variant-numeric: lining-nums; }
-  img { position: absolute; }
-  .haut { top: -50px; left: -60px; width: 440px; }
-  .bas { bottom: -50px; right: -60px; width: 440px; }
-  .cadre { position: absolute; inset: 28px; border: 1.500px solid #BF9B5A; }
-  h1 { margin: 0; font: 400 104px/1.05 'Pinyon Script', cursive; }
-  .et { font-size: 72px; }
-  p { margin: 26px 0 0; font-size: 30px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; }
-  .invitation { margin: 0 0 14px; font-size: 26px; color: #9A7B3F; }
+  .decor { position: absolute; width: 340px; }
+  .haut { top: -90px; left: -100px; }
+  .bas { bottom: -90px; right: -100px; }
+  .couple { position: relative; height: 560px; }
+  .texte { position: relative; text-align: center; }
+  h1 { margin: 0; font: 400 96px/1.08 'Pinyon Script', cursive; }
+  h1 > span { display: block; }
+  .et { font-family: 'Great Vibes', cursive; font-size: 0.92em; }
+  p { margin: 30px 0 0; font-size: 28px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; }
+  .invitation { margin: 0 0 18px; font-size: 24px; color: #9A7B3F; }
 </style></head>
 <body>
-  <div class="cadre"></div>
-  <img class="haut" src="${illustration('bouquet-haut-gauche')}" alt="">
-  <img class="bas" src="${illustration('bouquet-bas-droite')}" alt="">
-  <div>
+  <img class="decor haut" src="${illustration('bouquet-haut-gauche')}" alt="">
+  <img class="decor bas" src="${illustration('bouquet-bas-droite')}" alt="">
+  <img class="couple" src="${illustration('couple-arche')}" alt="">
+  <div class="texte">
     <p class="invitation">Invitation</p>
-    <h1>${wedding.maries.elle} <span class="et">&amp;</span> ${wedding.maries.lui}</h1>
+    <h1><span>${wedding.maries.elle}</span><span><span class="et">&amp;</span> ${wedding.maries.lui}</span></h1>
     <p>${date}</p>
   </div>
 </body></html>`;

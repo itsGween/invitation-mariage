@@ -32,12 +32,12 @@ export function App() {
   if (invite.etat === 'invalide') return <LienInvalide />;
 
   if (invite.etat === 'ok' && phase === 'invitation') {
-    return <PageInvitation nom={invite.nom} direction={direction} />;
+    return <PageInvitation nom={invite.nom} code={invite.code} direction={direction} />;
   }
 
   return (
     <Accueil
-      nom={invite.etat === 'ok' ? invite.nom : null}
+      pret={invite.etat === 'ok'}
       ouverture={phase === 'ouverture'}
       onOuvrir={() => setPhase('ouverture')}
     />
