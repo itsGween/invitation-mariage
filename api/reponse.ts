@@ -5,7 +5,7 @@
 // quittent jamais le serveur.
 
 import { wedding } from '../src/config/wedding.ts';
-import { codeValide, nomDepuisCode } from '../src/lib/invites.ts';
+import { codeValide, nombrePlaces, nomDepuisCode } from '../src/lib/invites.ts';
 
 const EXPEDITEUR = 'Invitation Mariage <onboarding@resend.dev>';
 const DESTINATAIRE_PAR_DEFAUT = 'kangahhansberryl7@outlook.com';
@@ -50,14 +50,20 @@ function courriel(nom: string, reponse: Reponse, instant: Date) {
   const { elle, lui } = wedding.maries;
   const mariage = `le mariage de ${elle} & ${lui} du ${dateMariage}`;
   const present = reponse === 'present';
-  const objet = present ? `Présence confirmée : ${nom}` : `Absence : ${nom}`;
+  const places = nombrePlaces(nom);
+  const objet = present
+    ? `Présence confirmée : ${nom} (${places} ${places > 1 ? 'places' : 'place'})`
+    : `Absence : ${nom}`;
+  const lignePlaces = present ? `Places réservées : ${places}` : null;
   const annonce = present ? 'Bonne nouvelle !' : null;
   const phrase = present
     ? `présence confirmée pour ${mariage}.`
     : `absence annoncée, avec regret, pour ${mariage}.`;
   const pied = `Réponse envoyée depuis l'invitation en ligne le ${horodatage(instant)} (heure d'Abidjan).`;
 
-  const texte = [annonce, `${nom} : ${phrase}`, '', pied].filter((l) => l !== null).join('\n');
+  const texte = [annonce, `${nom} : ${phrase}`, lignePlaces, '', pied]
+    .filter((l) => l !== null)
+    .join('\n');
 
   const html = `<!doctype html>
 <html lang="fr"><body style="margin:0;padding:24px 12px;background:#faf6f0;">
@@ -65,6 +71,7 @@ function courriel(nom: string, reponse: Reponse, instant: Date) {
 <tr><td style="padding:28px 28px 8px;font-family:Georgia,'Times New Roman',serif;color:#344733;">
 ${annonce ? `<p style="margin:0 0 12px;font-size:22px;color:#9a7b3f;font-style:italic;">${annonce}</p>` : ''}
 <p style="margin:0 0 16px;font-size:18px;line-height:1.5;"><strong>${echapper(nom)}</strong> : ${echapper(phrase)}</p>
+${lignePlaces ? `<p style="margin:0 0 16px;font-size:18px;line-height:1.5;">${lignePlaces}</p>` : ''}
 </td></tr>
 <tr><td style="padding:0 28px 24px;font-family:Georgia,'Times New Roman',serif;font-size:14px;line-height:1.5;color:#56634f;border-top:1px solid #ead9b8;">
 <p style="margin:16px 0 0;">${echapper(pied)}</p>

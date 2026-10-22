@@ -77,6 +77,11 @@ export const wedding = {
     titre: 'Confirmation de présence',
     texte:
       'Pour nous permettre de bien organiser cette journée, merci de confirmer votre présence le plus tôt possible.',
+    // Places prévues, déduites du nom : 2 pour « M. et Mme … », 1 sinon.
+    placesDeux:
+      'Afin de vous accueillir dans les meilleures conditions, cette invitation est prévue uniquement pour deux personnes. Merci de votre compréhension.',
+    placesUne:
+      'Afin de vous accueillir dans les meilleures conditions, cette invitation est prévue uniquement pour une personne. Merci de votre compréhension.',
     boutonPresent: 'Je confirme ma présence',
     boutonAbsent: 'Je regrette de ne pas pouvoir être des vôtres',
     envoi: 'Envoi…',

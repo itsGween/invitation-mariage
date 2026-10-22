@@ -27,3 +27,8 @@ export async function nomDepuisCode(code: string): Promise<string | null> {
   if (!entree) return null;
   return dechiffrerNom(cle, entree.iv, entree.nom);
 }
+
+/** Places prévues par l'invitation, déduites du nom : 2 pour « M. et Mme … », 1 sinon. */
+export function nombrePlaces(nom: string): 1 | 2 {
+  return /^M\.\s+et\s+Mme\s/.test(nom) ? 2 : 1;
+}

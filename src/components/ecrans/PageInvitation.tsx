@@ -59,7 +59,7 @@ export function PageInvitation({ nom, code, direction }: Props) {
           <BlocDate className="page__date" />
         </div>
         <Programme />
-        <Confirmation code={code} />
+        <Confirmation code={code} nom={nom} />
       </main>
     </div>
   );

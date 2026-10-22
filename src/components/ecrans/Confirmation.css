@@ -47,6 +47,15 @@
   text-wrap: balance;
 }
 
+.confirmation__places {
+  margin-top: 0.85rem;
+  color: var(--or-clair);
+  font-size: 1rem;
+  font-style: italic;
+  line-height: 1.45;
+  text-wrap: balance;
+}
+
 .confirmation__reponse {
   display: flex;
   flex-direction: column;
@@ -164,6 +173,7 @@
   }
 
   .confirmation__titre,
+  .confirmation__places,
   .confirmation__modifier {
     color: var(--or-texte);
   }

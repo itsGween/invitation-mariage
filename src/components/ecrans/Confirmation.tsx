@@ -7,6 +7,7 @@ import {
   type Reponse,
 } from '../../lib/reponse.ts';
 import { Bouton } from '../Bouton.tsx';
+import { nombrePlaces } from '../../lib/invites.ts';
 import { IconeCourriel, IconeTelephone } from '../Icones.tsx';
 import { Illustration } from '../Illustration.tsx';
 import { Separateur } from '../Separateur.tsx';
@@ -18,7 +19,7 @@ type Etat =
 
 // Un appui envoie immédiatement la réponse par courriel (api/reponse.ts).
 // La réponse est mémorisée dans le navigateur pour les visites suivantes.
-export function Confirmation({ code }: { code: string }) {
+export function Confirmation({ code, nom }: { code: string; nom: string }) {
   const { confirmation: t, contact } = wedding;
   const [etat, setEtat] = useState<Etat>(() => {
     const memorisee = reponseMemorisee(code);
@@ -77,6 +78,9 @@ export function Confirmation({ code }: { code: string }) {
         </h2>
         <Separateur className="confirmation__separateur" />
         <p className="confirmation__texte">{t.texte}</p>
+        <p className="confirmation__places">
+          {nombrePlaces(nom) === 2 ? t.placesDeux : t.placesUne}
+        </p>
 
         <div className="confirmation__reponse">
           {(etat.etape === 'choix' || envoi) && (
