@@ -32,7 +32,7 @@ export const wedding = {
     // {nom} est remplacé par le nom de l'invité.
     salutation: 'Bonjour {nom},',
     texte:
-      "C’est avec un cœur rempli de gratitude et de joie que nous nous unirons devant Dieu par le sacrement du mariage. Votre présence en ce jour béni sera pour nous le plus précieux des cadeaux, et nous serions honorés de partager ce moment unique avec vous.",
+      "C’est avec un cœur rempli de gratitude et de joie que nous nous unirons devant Dieu par le sacrement du mariage. Nous serions honorés de partager ce moment unique avec vous.",
   },
 
   programme: {
