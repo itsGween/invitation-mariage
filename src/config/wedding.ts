@@ -84,9 +84,7 @@ export const wedding = {
     merciAbsent: 'Merci pour votre réponse. Vous serez dans nos pensées en ce jour.',
     rappelPresent: 'Votre réponse : présence confirmée',
     rappelAbsent: 'Votre réponse : absence',
-    // « Contactez-nous » mène à la rubrique Contacts.
-    changement: 'Un changement ou une erreur ?',
-    contactez: 'Contactez-nous.',
+    changement: 'Un changement ou une erreur ? Contactez-nous.',
     echec:
       "L'envoi n'a pas abouti. Merci de réessayer, ou de nous contacter au +225 07 07 86 41 82.",
     reessayer: 'Réessayer',

@@ -171,13 +171,6 @@
   line-height: 1.4;
 }
 
-.confirmation__changement a {
-  color: var(--or-clair);
-  white-space: nowrap;
-  font-weight: 600;
-  text-underline-offset: 0.2em;
-}
-
 /* Contacts */
 .confirmation__contacts-bloc {
   display: flex;
@@ -282,8 +275,7 @@
 
   .confirmation__titre,
   .confirmation__places,
-  .confirmation__joignables,
-  .confirmation__changement a {
+  .confirmation__joignables {
     color: var(--or-texte);
   }
 

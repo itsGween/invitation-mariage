@@ -59,8 +59,8 @@ mémorisé dans le navigateur.
   courriel échoue, la réponse est effacée pour que l'invité puisse réessayer.
 
 Avant l'envoi, la page demande confirmation (« Cette réponse sera
-définitive. »). Ensuite, elle affiche la réponse sans aucun bouton, avec un
-lien vers les contacts en cas d'erreur.
+définitive. »). Ensuite, elle affiche la réponse sans aucun bouton, avec
+« Un changement ou une erreur ? Contactez-nous. » (texte simple).
 
 Dans Redis, la clé est l'identifiant dérivé du code (`reponse:<id>`, jamais le
 nom ni le code), la valeur `{ reponse, date }`. Le code partagé par la

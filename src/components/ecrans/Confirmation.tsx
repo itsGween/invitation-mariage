@@ -193,7 +193,7 @@ export function Confirmation({ code, nom }: { code: string; nom: string }) {
                   {present ? t.rappelPresent : t.rappelAbsent}
                 </p>
                 <p className="confirmation__changement">
-                  {t.changement} <a href="#contacts">{t.contactez}</a>
+                  {t.changement}
                 </p>
               </div>
             </>

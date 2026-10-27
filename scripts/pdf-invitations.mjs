@@ -360,7 +360,6 @@ try {
       <li>Dans « Confirmation », appuyez sur « ${echapper(wedding.confirmation.boutonPresent)} » : la page demande « ${echapper(wedding.confirmation.demandePresent)} ». « ${echapper(wedding.confirmation.annuler)} » ramène aux deux boutons.</li>
       <li>« ${echapper(wedding.confirmation.oui)} » : le remerciement puis « ${echapper(wedding.confirmation.rappelPresent)} » s'affichent, sans aucun bouton, et le courriel arrive à ${echapper(DESTINATAIRE)}.</li>
       <li>Ouvrez le même lien sur un autre appareil ou en navigation privée : l'état final s'affiche directement, sans boutons, et aucun nouveau courriel n'est envoyé.</li>
-      <li>« ${echapper(wedding.confirmation.contactez)} » mène à la rubrique « ${echapper(wedding.contacts.titre)} ».</li>
     </ol>
   </section>
 
