@@ -104,6 +104,28 @@
   cursor: pointer;
 }
 
+.confirmation__presentation {
+  width: 100%;
+  margin-top: 0.6rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(217 188 130 / 0.55);
+  color: var(--or-clair);
+  font-size: 0.9375rem;
+  font-style: italic;
+  line-height: 1.45;
+  text-wrap: balance;
+}
+
+.confirmation__presentation-auteur {
+  margin-top: 0.35rem;
+  overflow-wrap: anywhere;
+}
+
+.confirmation__presentation a {
+  color: inherit;
+  text-underline-offset: 0.2em;
+}
+
 .confirmation__titre--contact {
   margin-top: 2.25rem;
 }
@@ -174,6 +196,7 @@
 
   .confirmation__titre,
   .confirmation__places,
+  .confirmation__presentation,
   .confirmation__modifier {
     color: var(--or-texte);
   }
@@ -195,5 +218,9 @@
   .confirmation__message--merci,
   .confirmation__message--rappel {
     border-color: var(--or);
+  }
+
+  .confirmation__presentation {
+    border-top-color: rgb(191 155 90 / 0.6);
   }
 }

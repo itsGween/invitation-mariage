@@ -20,3 +20,9 @@ invites.codes.json
 
 # Originaux et maquette : gardés en local uniquement
 illustrations-mariage/
+
+# Liste source et documents par liste (noms et liens)
+LISTE_POUR_CARTE_DINVITATION.xlsx
+Invitations-Mariage-Liste-Maman.pdf
+Invitations-Mariage-Liste-Papa.pdf
+invites.listes.json

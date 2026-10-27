@@ -20,7 +20,7 @@ type Etat =
 // Un appui envoie immédiatement la réponse par courriel (api/reponse.ts).
 // La réponse est mémorisée dans le navigateur pour les visites suivantes.
 export function Confirmation({ code, nom }: { code: string; nom: string }) {
-  const { confirmation: t, contact } = wedding;
+  const { confirmation: t, contact, presentation } = wedding;
   const [etat, setEtat] = useState<Etat>(() => {
     const memorisee = reponseMemorisee(code);
     return memorisee ? { etape: 'rappel', reponse: memorisee } : { etape: 'choix' };
@@ -115,6 +115,20 @@ export function Confirmation({ code, nom }: { code: string; nom: string }) {
             <button type="button" className="confirmation__modifier" onClick={modifier}>
               {t.modifier}
             </button>
+          )}
+          {(etat.etape === 'merci' || etat.etape === 'rappel') && (
+            <aside className="confirmation__presentation" aria-label="Invitations numériques">
+              <p>{presentation.texte}</p>
+              <p className="confirmation__presentation-auteur">
+                {presentation.nom}
+                {' · '}
+                <a
+                  href={`mailto:${presentation.courriel}?subject=${encodeURIComponent(presentation.objet)}`}
+                >
+                  {presentation.courriel}
+                </a>
+              </p>
+            </aside>
           )}
           {etat.etape === 'echec' && (
             <Bouton

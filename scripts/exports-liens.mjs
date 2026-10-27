@@ -1,6 +1,7 @@
 // Exports Excel et Word de la liste des liens (generer-liens.mjs,
 // document-invitations.mjs).
-// `invites` : [{ nom, lien, message }], dans l'ordre de invites.csv.
+// `invites` : [{ nom, lien, message }], dans l'ordre de invites.csv. Pour
+// l'Excel, `liste` et `statut` facultatifs ajoutent les colonnes du même nom.
 
 import { readFile, writeFile } from 'node:fs/promises';
 import ExcelJS from 'exceljs';
@@ -33,6 +34,14 @@ export async function ecrireXlsx(fichier, invites) {
     { header: 'Message à envoyer', key: 'message', width: 70 },
     { header: 'Envoyé', key: 'envoye', width: 11 },
   ];
+  const avecListes = invites.some((i) => i.liste);
+  if (avecListes) {
+    feuille.columns = [
+      ...feuille.columns.map(({ header, key, width }) => ({ header, key, width })),
+      { header: 'Liste', key: 'liste', width: 15 },
+      { header: 'Statut', key: 'statut', width: 15 },
+    ];
+  }
 
   const entete = feuille.getRow(1);
   entete.font = { bold: true, color: { argb: 'FFFFFFFF' } };
@@ -42,15 +51,15 @@ export async function ecrireXlsx(fichier, invites) {
     cellule.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${VERT}` } };
   });
 
-  for (const { nom, lien, message } of invites) {
-    const ligne = feuille.addRow({ nom, lien: { text: lien, hyperlink: lien }, message, envoye: '' });
+  for (const { nom, lien, message, liste = '', statut = '' } of invites) {
+    const ligne = feuille.addRow({ nom, lien: { text: lien, hyperlink: lien }, message, envoye: '', liste, statut });
     ligne.alignment = { vertical: 'top' };
     ligne.getCell('nom').font = { bold: true };
     ligne.getCell('lien').font = { color: { argb: `FF${BLEU_LIEN}` }, underline: true };
     ligne.getCell('message').alignment = { vertical: 'top', wrapText: true };
     ligne.getCell('envoye').alignment = { vertical: 'top', horizontal: 'center' };
   }
-  feuille.autoFilter = { from: 'A1', to: 'D1' };
+  feuille.autoFilter = { from: 'A1', to: avecListes ? 'F1' : 'D1' };
 
   await writeFile(fichier, Buffer.from(await classeur.xlsx.writeBuffer()));
 }

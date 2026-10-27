@@ -97,6 +97,15 @@ export const wedding = {
     reessayer: 'Réessayer',
   },
 
+  // Encart affiché sous la réponse de l'invité, jamais avant
+  presentation: {
+    texte:
+      'Cette invitation vous a plu ? Je crée des invitations numériques personnalisées pour toutes vos cérémonies : mariages, baptêmes, anniversaires…',
+    nom: 'Gween Kangah',
+    courriel: 'kangahhansberryl7@outlook.com',
+    objet: "Demande d'invitation numérique",
+  },
+
   contact: {
     titre: 'Nous contacter',
     courriel: 'christelleahua@yahoo.fr',
