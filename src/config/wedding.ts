@@ -66,8 +66,9 @@ export const wedding = {
       'Pour nous permettre de bien organiser cette journée, merci de confirmer votre présence avant le lundi 9 novembre.',
     // Places prévues, déduites du nom : 2 pour « M. et Mme … », 1 sinon.
     placesDeux:
-      'Afin de vous accueillir dans les meilleures conditions, cette invitation est prévue uniquement pour deux personnes. Merci de votre compréhension.',
-    placesUne: 'Merci de noter : cette invitation est personnelle.',
+      'Afin de vous accueillir dans les meilleures conditions, cette invitation est prévue uniquement pour deux personnes, et la célébration se fera entre adultes. Merci de votre compréhension.',
+    placesUne:
+      'Merci de noter : cette invitation est personnelle. Afin d’assurer le bon déroulement de cette journée, la célébration se fera entre adultes.',
     // Pendant la lecture de la réponse déjà enregistrée
     attente: 'Un instant…',
     erreurLecture: "Votre réponse n'a pas pu être vérifiée. Merci de réessayer dans un instant.",

@@ -50,7 +50,7 @@
 .confirmation__places {
   margin-top: 0.85rem;
   color: var(--or-clair);
-  font-size: 1rem;
+  font-size: 1.0625rem;
   font-style: italic;
   line-height: 1.45;
   text-wrap: balance;

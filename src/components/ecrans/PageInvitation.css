@@ -133,6 +133,11 @@
     font-size: clamp(1rem, 1.25vw, 1.125rem);
   }
 
+  /* toujours un peu plus petite que le texte d'introduction */
+  .page__colonnes .confirmation__places {
+    font-size: clamp(0.9375rem, 1.18vw, 1.0625rem);
+  }
+
   .page__colonnes .programme__bouton,
   .page__colonnes .confirmation__bouton {
     padding-inline: 1em;
