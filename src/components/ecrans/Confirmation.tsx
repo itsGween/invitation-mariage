@@ -1,57 +1,76 @@
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { wedding } from '../../config/wedding.ts';
-import {
-  envoyerReponse,
-  memoriserReponse,
-  reponseMemorisee,
-  type Reponse,
-} from '../../lib/reponse.ts';
+import { envoyerReponse, lireReponse, type Reponse } from '../../lib/reponse.ts';
 import { Bouton } from '../Bouton.tsx';
 import { nombrePlaces } from '../../lib/invites.ts';
-import { IconeCourriel, IconeTelephone } from '../Icones.tsx';
+import { IconeTelephone } from '../Icones.tsx';
 import { Illustration } from '../Illustration.tsx';
 import { Separateur } from '../Separateur.tsx';
 import './Confirmation.css';
 
 type Etat =
-  | { etape: 'choix' }
-  | { etape: 'envoi' | 'merci' | 'rappel' | 'echec'; reponse: Reponse };
+  | { etape: 'attente' | 'erreurLecture' | 'choix' }
+  | { etape: 'demande' | 'envoi' | 'echec' | 'final'; reponse: Reponse };
 
-// Un appui envoie immédiatement la réponse par courriel (api/reponse.ts).
-// La réponse est mémorisée dans le navigateur pour les visites suivantes.
+// La réponse est définitive pour ce lien : le serveur (api/reponse.ts) fait
+// foi. Au chargement, on lui demande si ce lien a déjà répondu ; avant tout
+// envoi, l'invité confirme son choix dans la page.
 export function Confirmation({ code, nom }: { code: string; nom: string }) {
-  const { confirmation: t, contact, presentation } = wedding;
-  const [etat, setEtat] = useState<Etat>(() => {
-    const memorisee = reponseMemorisee(code);
-    return memorisee ? { etape: 'rappel', reponse: memorisee } : { etape: 'choix' };
-  });
-  const choix = useRef<HTMLDivElement>(null);
+  const { confirmation: t, contacts } = wedding;
+  const [etat, setEtat] = useState<Etat>({ etape: 'attente' });
+  const zone = useRef<HTMLDivElement>(null);
 
-  async function repondre(reponse: Reponse) {
+  // Le focus suit le contenu qui remplace le bouton activé.
+  const focaliser = (selecteur: string) =>
+    window.requestAnimationFrame(() => zone.current?.querySelector<HTMLElement>(selecteur)?.focus());
+
+  const verifier = useCallback(() => {
+    let annule = false;
+    setEtat({ etape: 'attente' });
+    lireReponse(code)
+      .then((reponse) => {
+        if (!annule) setEtat(reponse ? { etape: 'final', reponse } : { etape: 'choix' });
+      })
+      .catch(() => {
+        if (!annule) setEtat({ etape: 'erreurLecture' });
+      });
+    return () => {
+      annule = true;
+    };
+  }, [code]);
+
+  useEffect(verifier, [verifier]);
+
+  function demander(reponse: Reponse) {
+    setEtat({ etape: 'demande', reponse });
+    focaliser('.confirmation__demande button');
+  }
+
+  function annuler() {
+    setEtat({ etape: 'choix' });
+    focaliser('button');
+  }
+
+  async function confirmer(reponse: Reponse) {
     setEtat({ etape: 'envoi', reponse });
     try {
-      await envoyerReponse(code, reponse);
-      memoriserReponse(code, reponse);
-      setEtat({ etape: 'merci', reponse });
+      // En cas de 409, c'est la réponse déjà enregistrée qui s'affiche.
+      setEtat({ etape: 'final', reponse: await envoyerReponse(code, reponse) });
     } catch {
       setEtat({ etape: 'echec', reponse });
     }
   }
 
-  function modifier() {
-    setEtat({ etape: 'choix' });
-    // Le focus passe au premier bouton, réaffiché à la place du lien.
-    window.requestAnimationFrame(() => choix.current?.querySelector('button')?.focus());
-  }
-
-  const envoi = etat.etape === 'envoi';
   const present = 'reponse' in etat && etat.reponse === 'present';
-  const message = {
-    choix: null,
-    envoi: <span className="sr-only">{t.envoi}</span>,
-    merci: present ? t.merciPresent : t.merciAbsent,
-    rappel: present ? t.rappelPresent : t.rappelAbsent,
+  // Annonce des changements d'état aux lecteurs d'écran
+  const annonce = {
+    attente: '',
+    choix: '',
+    envoi: t.envoi,
+    erreurLecture: t.erreurLecture,
+    demande: present ? t.demandePresent : t.demandeAbsent,
     echec: t.echec,
+    final: `${present ? t.merciPresent : t.merciAbsent} ${present ? t.rappelPresent : t.rappelAbsent}`,
   }[etat.etape];
 
   return (
@@ -82,83 +101,130 @@ export function Confirmation({ code, nom }: { code: string; nom: string }) {
           {nombrePlaces(nom) === 2 ? t.placesDeux : t.placesUne}
         </p>
 
-        <div className="confirmation__reponse">
-          {(etat.etape === 'choix' || envoi) && (
-            <div ref={choix} className="confirmation__boutons">
+        <p className="sr-only" aria-live="polite" aria-atomic="true">
+          {annonce}
+        </p>
+
+        <div ref={zone} className="confirmation__reponse">
+          {etat.etape === 'attente' && (
+            <p className="confirmation__attente">
+              <span className="confirmation__points" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </span>
+              <span className="sr-only">{t.attente}</span>
+            </p>
+          )}
+
+          {etat.etape === 'erreurLecture' && (
+            <>
+              <p className="confirmation__message">{t.erreurLecture}</p>
+              <Bouton variante="clair" onClick={verifier} className="confirmation__bouton">
+                {t.reessayer}
+              </Bouton>
+            </>
+          )}
+
+          {etat.etape === 'choix' && (
+            <div className="confirmation__boutons">
               {(['present', 'absent'] as const).map((reponse) => (
                 <Bouton
                   key={reponse}
                   variante={reponse === 'present' ? 'clair' : 'secondaire'}
-                  fleche={reponse === 'present' && !envoi}
-                  disabled={envoi}
-                  onClick={() => repondre(reponse)}
+                  fleche={reponse === 'present'}
+                  onClick={() => demander(reponse)}
                   className="confirmation__bouton"
                 >
-                  {envoi && etat.reponse === reponse
-                    ? t.envoi
-                    : reponse === 'present'
-                      ? t.boutonPresent
-                      : t.boutonAbsent}
+                  {reponse === 'present' ? t.boutonPresent : t.boutonAbsent}
                 </Bouton>
               ))}
             </div>
           )}
 
-          {/* Messages d'état annoncés par les lecteurs d'écran */}
-          <div aria-live="polite" aria-atomic="true">
-            {message && (
-              <p className={`confirmation__message confirmation__message--${etat.etape}`}>{message}</p>
-            )}
-          </div>
-
-          {(etat.etape === 'merci' || etat.etape === 'rappel') && (
-            <button type="button" className="confirmation__modifier" onClick={modifier}>
-              {t.modifier}
-            </button>
-          )}
-          {(etat.etape === 'merci' || etat.etape === 'rappel') && (
-            <aside className="confirmation__presentation" aria-label="Invitations numériques">
-              <p>{presentation.texte}</p>
-              <p className="confirmation__presentation-auteur">
-                {presentation.nom}
-                {' · '}
-                <a
-                  href={`mailto:${presentation.courriel}?subject=${encodeURIComponent(presentation.objet)}`}
-                >
-                  {presentation.courriel}
-                </a>
-              </p>
-            </aside>
-          )}
-          {etat.etape === 'echec' && (
-            <Bouton
-              variante="clair"
-              onClick={() => repondre(etat.reponse)}
-              className="confirmation__bouton"
+          {(etat.etape === 'demande' || etat.etape === 'envoi') && (
+            <div
+              className="confirmation__demande"
+              role="group"
+              aria-labelledby="confirmation-demande"
             >
-              {t.reessayer}
-            </Bouton>
+              <p id="confirmation-demande" className="confirmation__question">
+                {present ? t.demandePresent : t.demandeAbsent}
+              </p>
+              <div className="confirmation__boutons">
+                <Bouton
+                  variante="clair"
+                  disabled={etat.etape === 'envoi'}
+                  onClick={() => confirmer(etat.reponse)}
+                  className="confirmation__bouton"
+                >
+                  {etat.etape === 'envoi' ? t.envoi : t.oui}
+                </Bouton>
+                <Bouton
+                  variante="secondaire"
+                  disabled={etat.etape === 'envoi'}
+                  onClick={annuler}
+                  className="confirmation__bouton"
+                >
+                  {t.annuler}
+                </Bouton>
+              </div>
+            </div>
+          )}
+
+          {etat.etape === 'echec' && (
+            <>
+              <p className="confirmation__message">{t.echec}</p>
+              <Bouton
+                variante="clair"
+                onClick={() => confirmer(etat.reponse)}
+                className="confirmation__bouton"
+              >
+                {t.reessayer}
+              </Bouton>
+            </>
+          )}
+
+          {etat.etape === 'final' && (
+            <>
+              <p className="confirmation__merci">{present ? t.merciPresent : t.merciAbsent}</p>
+              <div className="confirmation__recapitulatif">
+                <p className="confirmation__votre-reponse">
+                  {present ? t.rappelPresent : t.rappelAbsent}
+                </p>
+                <p className="confirmation__changement">
+                  {t.changement} <a href="#contacts">{t.contactez}</a>
+                </p>
+              </div>
+            </>
           )}
         </div>
 
-        <h2 className="confirmation__titre confirmation__titre--contact script">{contact.titre}</h2>
-        <ul className="confirmation__contacts">
-          <li>
-            <a className="confirmation__contact" href={`mailto:${contact.courriel}`}>
-              <IconeCourriel className="confirmation__icone-contact" />
-              {contact.courriel}
-            </a>
-          </li>
-          <li>
-            <a
-              className="confirmation__contact"
-              href={`tel:${contact.telephone.replace(/[^+\d]/g, '')}`}
-            >
-              <IconeTelephone className="confirmation__icone-contact" />
-              <span className="confirmation__telephone">{contact.telephone}</span>
-            </a>
-          </li>
-        </ul>
+        <div id="contacts" className="confirmation__contacts-bloc">
+          <h2 className="confirmation__titre confirmation__titre--contact script">
+            {contacts.titre}
+          </h2>
+          <p className="confirmation__joignables">{contacts.sousTitre}</p>
+          <ul className="confirmation__contacts">
+            {contacts.telephones.map((tel) => (
+              <li key={tel.numero} className="confirmation__ligne-contact">
+                <a className="confirmation__contact" href={tel.appel}>
+                  <IconeTelephone className="confirmation__icone-contact" />
+                  <span className="confirmation__telephone">{tel.numero}</span>
+                </a>
+                <a
+                  className="confirmation__whatsapp"
+                  href={tel.whatsapp}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {contacts.whatsapp}
+                  <span className="sr-only"> : {tel.numero} (nouvel onglet)</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </section>
   );

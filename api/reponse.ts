@@ -1,17 +1,25 @@
-// POST /api/reponse — { code, reponse: "present" | "absent" }
-// Retrouve le nom de l'invité à partir du code (même dérivation et même
-// fichier chiffré que le site) et envoie sa réponse par courriel via Resend.
-// Le navigateur n'envoie jamais le nom ; le destinataire et la clé ne
-// quittent jamais le serveur.
+// GET  /api/reponse?code=…  — réponse déjà enregistrée pour ce lien, ou « aucune ».
+// POST /api/reponse          — { code, reponse: "present" | "absent" }
+// Retrouve l'invité à partir du code (même dérivation et même fichier chiffré
+// que le site). Une réponse est définitive : elle est enregistrée dans Redis
+// (SET NX) sous l'identifiant dérivé du code, puis envoyée par courriel via
+// Resend. Si ce lien a déjà répondu : 409 avec la réponse existante, sans
+// courriel. Le navigateur n'envoie jamais le nom ; le destinataire et les
+// clés ne quittent jamais le serveur.
 
 import { wedding } from '../src/config/wedding.ts';
-import { codeValide, nombrePlaces, nomDepuisCode } from '../src/lib/invites.ts';
+import { codeValide, inviteDepuisCode, nombrePlaces } from '../src/lib/invites.ts';
+import {
+  effacerReponse,
+  enregistrerReponse,
+  lireReponse,
+  registre,
+  type Reponse,
+} from '../src/lib/registre.ts';
 
 const EXPEDITEUR = 'Invitation Mariage <onboarding@resend.dev>';
 const DESTINATAIRE_PAR_DEFAUT = 'kangahhansberryl7@outlook.com';
 const FUSEAU = 'Africa/Abidjan';
-
-type Reponse = 'present' | 'absent';
 
 const json = (corps: unknown, status: number) =>
   Response.json(corps, { status, headers: { 'Cache-Control': 'no-store' } });
@@ -82,6 +90,33 @@ ${lignePlaces ? `<p style="margin:0 0 16px;font-size:18px;line-height:1.5;">${li
   return { objet, texte, html };
 }
 
+async function inviteDepuis(brut: unknown) {
+  const code = codeValide(brut);
+  return code ? await inviteDepuisCode(code).catch(() => null) : null;
+}
+
+function registreOuErreur() {
+  const redis = registre();
+  if (!redis) console.error('KV_REST_API_URL ou KV_REST_API_TOKEN manquante : réponses indisponibles.');
+  return redis;
+}
+
+export async function GET(requete: Request): Promise<Response> {
+  const invite = await inviteDepuis(new URL(requete.url).searchParams.get('code'));
+  if (!invite) return json({ erreur: 'Invitation inconnue' }, 404);
+
+  const redis = registreOuErreur();
+  if (!redis) return json({ erreur: 'Service indisponible' }, 500);
+
+  try {
+    const existante = await lireReponse(redis, invite.id);
+    return json(existante ?? { reponse: 'aucune' }, 200);
+  } catch (erreur) {
+    console.error(`Lecture Redis échouée : ${String(erreur)}`);
+    return json({ erreur: 'Service indisponible' }, 503);
+  }
+}
+
 export async function POST(requete: Request): Promise<Response> {
   let corps: { code?: unknown; reponse?: unknown };
   try {
@@ -90,9 +125,9 @@ export async function POST(requete: Request): Promise<Response> {
     return json({ erreur: 'Requête invalide' }, 400);
   }
 
-  const code = codeValide(corps?.code);
-  const nom = code ? await nomDepuisCode(code).catch(() => null) : null;
-  if (!nom) return json({ erreur: 'Invitation inconnue' }, 404);
+  const invite = await inviteDepuis(corps?.code);
+  if (!invite) return json({ erreur: 'Invitation inconnue' }, 404);
+  const { id, nom } = invite;
 
   const reponse = corps.reponse;
   if (reponse !== 'present' && reponse !== 'absent') {
@@ -104,8 +139,24 @@ export async function POST(requete: Request): Promise<Response> {
     console.error('RESEND_API_KEY manquante : aucun courriel ne peut être envoyé.');
     return json({ erreur: 'Envoi indisponible' }, 500);
   }
+  const redis = registreOuErreur();
+  if (!redis) return json({ erreur: 'Service indisponible' }, 500);
 
-  const { objet, texte, html } = courriel(nom, reponse, new Date());
+  // Réponse définitive : un seul enregistrement par lien.
+  const instant = new Date();
+  let existante;
+  try {
+    existante = await enregistrerReponse(redis, id, reponse, instant);
+  } catch (erreur) {
+    console.error(`Écriture Redis échouée : ${String(erreur)}`);
+    return json({ erreur: 'Service indisponible' }, 503);
+  }
+  if (existante) {
+    console.log('Réponse déjà enregistrée pour ce lien : aucun courriel.');
+    return json(existante, 409);
+  }
+
+  const { objet, texte, html } = courriel(nom, reponse, instant);
   const envoi = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${cle}`, 'Content-Type': 'application/json' },
@@ -122,9 +173,13 @@ export async function POST(requete: Request): Promise<Response> {
     const detail =
       envoi instanceof Response ? `${envoi.status} ${await envoi.text().catch(() => '')}` : String(envoi);
     console.error(`Envoi Resend échoué (${reponse}) : ${detail}`);
+    // L'invité doit pouvoir réessayer : la réponse n'est pas gardée.
+    await effacerReponse(redis, id).catch((erreur: unknown) =>
+      console.error(`Réponse non effacée après l'échec de l'envoi : ${String(erreur)}`),
+    );
     return json({ erreur: "L'envoi n'a pas abouti" }, 502);
   }
 
-  console.log(`Réponse « ${reponse} » envoyée par courriel.`);
-  return json({ ok: true }, 200);
+  console.log(`Réponse « ${reponse} » enregistrée et envoyée par courriel.`);
+  return json({ reponse, date: instant.toISOString() }, 200);
 }

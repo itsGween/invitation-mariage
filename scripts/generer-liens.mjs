@@ -28,7 +28,7 @@ const FICHIER_DONNEES = path.join(racine, 'src', 'data', 'invites.json');
 
 // Le nom est gardé tel qu'écrit dans invites.csv (accents, orthographe,
 // majuscules) : seuls les espaces superflus sont retirés et les civilités de
-// tête normalisées (« M. » avec son point, « Mme », « Mlle », « Abbé »).
+// tête normalisées (« M. » avec son point, « Mme », « Mlle », « Abbé », « Maître »).
 // « et » et « épouse » restent en minuscule.
 // « mme  Kablan » → « Mme Kablan » ; « M Et Mme Ido Serge » → « M. et Mme Ido Serge »
 const CIVILITES = new Map([
@@ -39,6 +39,7 @@ const CIVILITES = new Map([
   ['mlle', 'Mlle'],
   ['mlle.', 'Mlle'],
   ['abbé', 'Abbé'],
+  ['maître', 'Maître'],
 ]);
 const MINUSCULES = new Set(['et', 'épouse']);
 

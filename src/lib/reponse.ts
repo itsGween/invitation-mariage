@@ -1,16 +1,46 @@
 export type Reponse = 'present' | 'absent';
 
-// Envoie la réponse à la fonction serveur api/reponse.ts, qui retrouve le
-// nom à partir du code et transmet la réponse par courriel.
-export async function envoyerReponse(code: string, reponse: Reponse): Promise<void> {
-  // `npm run dev` ne fait pas tourner les fonctions Vercel : envoi simulé,
-  // sans appel réseau. ?rsvp=echec simule un échec, ?rsvp=lent un envoi long.
+// Seul le serveur fait foi (api/reponse.ts) : une réponse enregistrée est
+// définitive pour ce lien, quels que soient le navigateur et l'appareil.
+// Rien n'est mémorisé dans le navigateur.
+
+// `npm run dev` ne fait pas tourner les fonctions Vercel : réponses simulées,
+// sans appel réseau ni courriel. ?rsvp=present ou ?rsvp=absent simule un lien
+// qui a déjà répondu, ?rsvp=attente une lecture qui ne se termine pas,
+// ?rsvp=echec un envoi qui échoue, ?rsvp=lent un envoi qui dure.
+const simulation = import.meta.env.DEV
+  ? new URLSearchParams(window.location.search).get('rsvp')
+  : null;
+const attendre = (ms: number) => new Promise((r) => window.setTimeout(r, ms));
+
+function reponseValide(valeur: unknown): Reponse | null {
+  return valeur === 'present' || valeur === 'absent' ? valeur : null;
+}
+
+/** Réponse déjà enregistrée pour ce lien, ou `null`. */
+export async function lireReponse(code: string): Promise<Reponse | null> {
   if (import.meta.env.DEV) {
-    const simulation = new URLSearchParams(window.location.search).get('rsvp');
-    await new Promise((r) => window.setTimeout(r, simulation === 'lent' ? 60_000 : 900));
+    await attendre(simulation === 'attente' ? 3_600_000 : 700);
+    return reponseValide(simulation);
+  }
+
+  const resultat = await fetch(`/api/reponse?code=${encodeURIComponent(code)}`, {
+    cache: 'no-store',
+  });
+  if (!resultat.ok) throw new Error(`Lecture refusée (${resultat.status})`);
+  return reponseValide((await resultat.json())?.reponse);
+}
+
+/**
+ * Envoie la réponse. Renvoie la réponse qui fait foi : celle envoyée, ou
+ * celle déjà enregistrée si ce lien avait déjà répondu (409).
+ */
+export async function envoyerReponse(code: string, reponse: Reponse): Promise<Reponse> {
+  if (import.meta.env.DEV) {
+    await attendre(simulation === 'lent' ? 60_000 : 900);
     if (simulation === 'echec') throw new Error('Échec simulé (développement)');
-    console.info(`[développement] Réponse « ${reponse} » simulée pour le code ${code} : aucun courriel envoyé.`);
-    return;
+    console.info(`[développement] Réponse « ${reponse} » simulée pour le code ${code} : rien n'est enregistré.`);
+    return reponse;
   }
 
   const resultat = await fetch('/api/reponse', {
@@ -18,26 +48,10 @@ export async function envoyerReponse(code: string, reponse: Reponse): Promise<vo
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ code, reponse }),
   });
+  if (resultat.status === 409) {
+    const existante = reponseValide((await resultat.json().catch(() => null))?.reponse);
+    if (existante) return existante;
+  }
   if (!resultat.ok) throw new Error(`Envoi refusé (${resultat.status})`);
-}
-
-// Réponse mémorisée dans ce navigateur, par invité. Le stockage peut être
-// indisponible (navigation privée, données bloquées) : on s'en passe.
-const cle = (code: string) => `mariage-reponse-${code}`;
-
-export function reponseMemorisee(code: string): Reponse | null {
-  try {
-    const valeur = window.localStorage.getItem(cle(code));
-    return valeur === 'present' || valeur === 'absent' ? valeur : null;
-  } catch {
-    return null;
-  }
-}
-
-export function memoriserReponse(code: string, reponse: Reponse) {
-  try {
-    window.localStorage.setItem(cle(code), reponse);
-  } catch {
-    // stockage indisponible
-  }
+  return reponse;
 }

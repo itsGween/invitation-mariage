@@ -84,68 +84,141 @@
   text-wrap: balance;
 }
 
-.confirmation__message--merci,
-.confirmation__message--rappel {
-  padding: 1rem 1.1rem;
+/* Lecture de la réponse déjà enregistrée : trois points discrets */
+.confirmation__attente {
+  display: flex;
+  justify-content: center;
+  min-height: 3rem;
+  align-items: center;
+}
+
+.confirmation__points {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.confirmation__points span {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.45;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .confirmation__points span {
+    animation: confirmation-point 1.2s ease-in-out infinite;
+  }
+
+  .confirmation__points span:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .confirmation__points span:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+}
+
+@keyframes confirmation-point {
+  40% {
+    opacity: 1;
+  }
+}
+
+/* Demande de confirmation avant l'envoi */
+.confirmation__demande {
+  display: grid;
+  gap: 0.9rem;
+  width: 100%;
+  padding: 1.1rem 1rem 1rem;
   border: 1px solid rgb(217 188 130 / 0.75);
   border-radius: 0.9rem;
 }
 
-.confirmation__modifier {
-  padding: 0.5rem 0.75rem;
-  border: 0;
-  background: none;
-  color: var(--or-clair);
-  font: inherit;
-  font-size: 1rem;
+.confirmation__question {
+  font-size: 1.1875rem;
   font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-  cursor: pointer;
-}
-
-.confirmation__presentation {
-  width: 100%;
-  margin-top: 0.6rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgb(217 188 130 / 0.55);
-  color: var(--or-clair);
-  font-size: 0.9375rem;
-  font-style: italic;
-  line-height: 1.45;
+  line-height: 1.4;
   text-wrap: balance;
 }
 
-.confirmation__presentation-auteur {
-  margin-top: 0.35rem;
-  overflow-wrap: anywhere;
+/* État final : remerciement, puis la réponse dans un encadré doré */
+.confirmation__merci {
+  font-size: 1.1875rem;
+  font-style: italic;
+  line-height: 1.4;
+  text-wrap: balance;
 }
 
-.confirmation__presentation a {
-  color: inherit;
+.confirmation__recapitulatif {
+  width: 100%;
+  padding: 1rem 1.1rem 0.95rem;
+  border: 1px solid rgb(217 188 130 / 0.75);
+  border-radius: 0.9rem;
+}
+
+.confirmation__votre-reponse {
+  font-size: 1.1875rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+.confirmation__changement {
+  margin-top: 0.35rem;
+  font-size: 0.9375rem;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.confirmation__changement a {
+  color: var(--or-clair);
+  white-space: nowrap;
+  font-weight: 600;
   text-underline-offset: 0.2em;
+}
+
+/* Contacts */
+.confirmation__contacts-bloc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  scroll-margin-top: 1.5rem;
 }
 
 .confirmation__titre--contact {
   margin-top: 2.25rem;
 }
 
+.confirmation__joignables {
+  margin-top: 0.15rem;
+  color: var(--or-clair);
+  font-size: 1rem;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* Deux colonnes alignées : numéro, puis lien WhatsApp */
 .confirmation__contacts {
   display: grid;
-  gap: 0.15rem;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 0.1rem 1.1rem;
   margin: 0.5rem 0 0;
   padding: 0;
   list-style: none;
-  text-align: left;
+}
+
+.confirmation__ligne-contact {
+  display: contents;
 }
 
 .confirmation__contact {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.7rem;
   min-height: 2.75rem;
   text-decoration: none;
-  overflow-wrap: anywhere;
 }
 
 .confirmation__contact:hover {
@@ -156,11 +229,24 @@
 .confirmation__icone-contact {
   flex: none;
   color: var(--or-clair);
-  font-size: 1.4rem;
+  font-size: 1.35rem;
 }
 
 .confirmation__telephone {
   white-space: nowrap;
+}
+
+.confirmation__whatsapp {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration-color: rgb(217 188 130 / 0.7);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
 }
 
 /* Ordinateur : colonne sur fond ivoire fleuri, titres en or */
@@ -196,8 +282,8 @@
 
   .confirmation__titre,
   .confirmation__places,
-  .confirmation__presentation,
-  .confirmation__modifier {
+  .confirmation__joignables,
+  .confirmation__changement a {
     color: var(--or-texte);
   }
 
@@ -215,12 +301,12 @@
     background: rgb(191 155 90 / 0.1);
   }
 
-  .confirmation__message--merci,
-  .confirmation__message--rappel {
+  .confirmation__demande,
+  .confirmation__recapitulatif {
     border-color: var(--or);
   }
 
-  .confirmation__presentation {
-    border-top-color: rgb(191 155 90 / 0.6);
+  .confirmation__whatsapp {
+    text-decoration-color: var(--or);
   }
 }

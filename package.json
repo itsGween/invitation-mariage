@@ -10,10 +10,14 @@
     "liens": "node scripts/generer-liens.mjs",
     "document": "node scripts/document-invitations.mjs",
     "pdf": "node scripts/pdf-invitations.mjs",
+    "reponses": "node scripts/reponses.mjs liste",
+    "reponse": "node scripts/reponses.mjs enregistrer",
+    "reinitialiser": "node scripts/reponses.mjs reinitialiser",
     "captures": "node scripts/captures.mjs",
     "apercu": "node scripts/apercu.mjs"
   },
   "dependencies": {
+    "@upstash/redis": "^1.40.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },

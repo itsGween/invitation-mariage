@@ -6,11 +6,11 @@ export type EtatInvite =
   | { etat: 'invalide' }
   | { etat: 'ok'; nom: string; code: string };
 
-// Espace insécable après « M. », « Mme », « Mlle » et « Abbé » : une civilité
+// Espace insécable après « M. », « Mme », « Mlle », « Abbé » et « Maître » : une civilité
 // ne reste jamais seule en fin de ligne. Affichage uniquement : les messages
 // et les courriels gardent l'espace normale.
 export function nomAffiche(nom: string): string {
-  return nom.replace(/(^|\s)(M\.|Mme|Mlle|Abbé) /g, '$1$2 ');
+  return nom.replace(/(^|\s)(M\.|Mme|Mlle|Abbé|Maître) /g, '$1$2 ');
 }
 
 function codeDansUrl(): string | null {

@@ -5,6 +5,7 @@ import { Bouton } from '../Bouton.tsx';
 import { Illustration } from '../Illustration.tsx';
 import { IndicateurDefilement } from '../IndicateurDefilement.tsx';
 import { Monogramme } from '../Monogramme.tsx';
+import { PiedDePage } from '../PiedDePage.tsx';
 import { Confirmation } from './Confirmation.tsx';
 import { Invitation } from './Invitation.tsx';
 import { Programme } from './Programme.tsx';
@@ -12,9 +13,10 @@ import './PageInvitation.css';
 
 type Props = { nom: string; code: string; direction: Direction };
 
-// Mobile : carte Invitation, Programme et itinéraires, Confirmation, en
-// défilement. Ordinateur : en-tête fin puis quatre colonnes (invitation,
-// couple et date, programme, confirmation).
+// Mobile : carte Invitation, Programme, Confirmation et Contacts, puis le
+// pied de page, en défilement. Ordinateur : en-tête fin, quatre colonnes
+// (invitation, couple et date, programme, confirmation) et le pied de page
+// en pleine largeur.
 export function PageInvitation({ nom, code, direction }: Props) {
   const principal = useRef<HTMLElement>(null);
   const { navigation, maries, indicateur } = wedding;
@@ -34,7 +36,6 @@ export function PageInvitation({ nom, code, direction }: Props) {
           <a href="#accueil">{navigation.accueil}</a>
           <a href="#invitation">{navigation.invitation}</a>
           <a href="#programme">{navigation.programme}</a>
-          <a href="#itineraires">{navigation.itineraires}</a>
           <a href="#confirmation">{navigation.confirmation}</a>
         </nav>
         <Bouton variante="contour" href="#confirmation" className="page__bouton-entete">
@@ -61,6 +62,7 @@ export function PageInvitation({ nom, code, direction }: Props) {
         <Programme />
         <Confirmation code={code} nom={nom} />
       </main>
+      <PiedDePage />
     </div>
   );
 }

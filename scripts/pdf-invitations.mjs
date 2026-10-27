@@ -5,7 +5,8 @@
 //   source, ignoré par git) : un PDF pour la liste de Marie-Christelle et un
 //   pour celle de Patrice ;
 // - sinon : un seul PDF avec tous les invités, dans l'ordre de invites.csv.
-// Régénère aussi liens.xlsx.
+// Régénère aussi liens.xlsx, et écrit Liens-de-test-Gween.pdf (liens de test
+// et commandes de remise à zéro).
 //
 // invites.listes.json : {
 //   existants: [noms dont le lien a déjà été transmis],
@@ -23,6 +24,8 @@ import { ecrireXlsx, lireLiens } from './exports-liens.mjs';
 
 // Nom dont le lien sert d'aperçu : présenté à part, hors de la liste.
 const NOM_APERCU = 'Gween Kangah';
+// Liens de test, jamais dans les listes : regroupés dans Liens-de-test-Gween.pdf.
+const NOMS_TEST = ['Gween Kangah', 'Hans-Berryl'];
 // Adresse citée dans le mode d'emploi : celle qui reçoit les réponses.
 const DESTINATAIRE = process.env.RSVP_DESTINATAIRE || 'kangahhansberryl7@outlook.com';
 
@@ -36,7 +39,8 @@ if (!existsSync(FICHIER_LIENS)) {
   process.exit(1);
 }
 
-const { apercu, invites, tous } = await lireLiens(FICHIER_LIENS, NOM_APERCU);
+const { apercu, invites: inscrits, tous } = await lireLiens(FICHIER_LIENS, NOM_APERCU);
+const invites = inscrits.filter((invite) => !NOMS_TEST.includes(invite.nom));
 const parNom = new Map(tous.map((invite) => [invite.nom, invite]));
 const { elle, lui } = wedding.maries;
 
@@ -87,7 +91,7 @@ const partieHtml = ({ titre, intro, invites: liste = [], doublons = [], noms }) 
   ${doublons.map((d, i) => doublonHtml(d, i + 1)).join('\n  ')}
   ${noms ? `<ul class="noms">${noms.map((n) => `<li>${echapper(n)}</li>`).join('')}</ul>` : ''}`;
 
-function pageHtml({ sousTitre, parties }) {
+function pageHtml({ sousTitre, parties = [], corps }) {
   const titre = `Invitations : mariage de ${elle} & ${lui}`;
   return `<!doctype html>
 <html lang="fr">
@@ -189,6 +193,15 @@ function pageHtml({ sousTitre, parties }) {
   .lien-seul { margin: 0; font-size: 12pt; line-height: 1.3; }
   .noms { margin: 0; padding-left: 6mm; }
   .noms li { margin-bottom: 1.2mm; }
+  .commande {
+    margin: 1.5mm 0 0;
+    padding: 2mm 3mm;
+    border-radius: 1.5mm;
+    background: #f3ead8;
+    font: 10.5pt/1.4 Consolas, 'Courier New', monospace;
+  }
+  .mode p { margin: 0 0 2mm; }
+  .mode + .mode { margin-top: 6mm; }
 </style>
 </head>
 <body>
@@ -199,7 +212,7 @@ function pageHtml({ sousTitre, parties }) {
     <span class="filet"></span>
   </header>
 
-  <section class="mode">
+  ${corps ?? `  <section class="mode">
     <h2>Mode d'emploi</h2>
     <ol>
       <li>Pour chaque invité, copiez son message et envoyez-le-lui par WhatsApp.</li>
@@ -219,6 +232,7 @@ function pageHtml({ sousTitre, parties }) {
       : ''
   }
   ${parties.filter((p) => p.invites?.length || p.doublons?.length || p.noms?.length).map(partieHtml).join('\n')}
+`}
 </body>
 </html>`;
 }
@@ -311,17 +325,54 @@ try {
 
     // Excel : colonnes Liste et Statut
     const liste = (nom) => {
-      if (nom === NOM_APERCU) return 'Aperçu';
+      if (nom === NOM_APERCU) return 'Aperçu (test)';
+    if (NOMS_TEST.includes(nom)) return 'Test';
       const m = surMaman.has(nom) || existants.has(nom) || reactives.has(nom);
       const p = surPapa.has(nom);
       return m && p ? 'Maman et Papa' : p ? 'Papa' : 'Maman';
     };
-    const statut = (nom) => (nom === NOM_APERCU ? '' : existants.has(nom) ? 'Déjà transmis' : 'Nouveau');
+    const statut = (nom) => (NOMS_TEST.includes(nom) ? '' : existants.has(nom) ? 'Déjà transmis' : 'Nouveau');
     await ecrireXlsx(
       FICHIER_XLSX,
       tous.map((i) => ({ ...i, liste: liste(i.nom), statut: statut(i.nom) })),
     );
     console.log('Écrit : liens.xlsx');
+  }
+
+  // Liens de test, pour Gween uniquement
+  const tests = NOMS_TEST.map((nom) => parNom.get(nom)).filter(Boolean);
+  if (tests.length) {
+    const fichier = path.join(racine, 'Liens-de-test-Gween.pdf');
+    const commande = (texte) => `<p class="commande">${echapper(texte)}</p>`;
+    const corps = `<section class="mode">
+    <h2>Vos liens de test</h2>
+    <ol>
+      ${tests.map((t) => `<li><strong>${echapper(t.nom)}</strong> : ${lienHtml(t.lien)}</li>`).join(' ')}
+    </ol>
+    <p>Ces liens n'apparaissent dans aucune des listes de vos parents, et leurs réponses ne sont jamais comptées dans les totaux. Le lien de ${echapper(NOM_APERCU)} sert aussi de lien d'aperçu en tête des PDF de vos parents.</p>
+  </section>
+
+  <section class="mode">
+    <h2>Ce qu'il faut tester</h2>
+    <ol>
+      <li>Ouvrez un lien : l'enveloppe s'ouvre, puis l'invitation affiche « Bonjour ${echapper(tests[0].nom)}, », la mention « ${echapper(wedding.confirmation.placesUne)} », le programme, la date limite, les contacts et le pied de page.</li>
+      <li>Sur téléphone, le bouton « ${echapper(wedding.indicateur.libelle)} » mène au programme et disparaît dès qu'on fait défiler.</li>
+      <li>Dans « Confirmation », appuyez sur « ${echapper(wedding.confirmation.boutonPresent)} » : la page demande « ${echapper(wedding.confirmation.demandePresent)} ». « ${echapper(wedding.confirmation.annuler)} » ramène aux deux boutons.</li>
+      <li>« ${echapper(wedding.confirmation.oui)} » : le remerciement puis « ${echapper(wedding.confirmation.rappelPresent)} » s'affichent, sans aucun bouton, et le courriel arrive à ${echapper(DESTINATAIRE)}.</li>
+      <li>Ouvrez le même lien sur un autre appareil ou en navigation privée : l'état final s'affiche directement, sans boutons, et aucun nouveau courriel n'est envoyé.</li>
+      <li>« ${echapper(wedding.confirmation.contactez)} » mène à la rubrique « ${echapper(wedding.contacts.titre)} ».</li>
+    </ol>
+  </section>
+
+  <section class="mode">
+    <h2>Remettre les liens à zéro</h2>
+    <p>Dans le dossier du projet, avec .env.local rempli. Pour voir toutes les réponses enregistrées et les totaux :</p>
+    ${commande('npm run reponses')}
+    <p style="margin-top: 3mm">Pour effacer la réponse d'un lien de test, qui peut alors répondre à nouveau :</p>
+    ${tests.map((t) => commande(`npm run reinitialiser -- "${t.nom}"`)).join(' ')}
+  </section>`;
+    await imprimer(nav, fichier, pageHtml({ sousTitre: 'Liens de test (Gween uniquement)', corps }));
+    console.log(`Écrit : ${path.basename(fichier)} (${tests.map((t) => t.nom).join(', ')})`);
   }
 } finally {
   await nav.close();

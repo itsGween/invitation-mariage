@@ -42,13 +42,6 @@ export const IconeCouverts = (p: Props) => (
   </Trait>
 );
 
-export const IconeCourriel = (p: Props) => (
-  <Trait {...p}>
-    <rect x="3" y="5.500" width="18" height="13" rx="1.500" />
-    <path d="m3.500 6.500 8.500 6.500 8.500-6.500" />
-  </Trait>
-);
-
 export const IconeTelephone = (p: Props) => (
   <Trait {...p}>
     <path d="M6.500 3.500h2.800l1.400 4-2 1.300a11 11 0 0 0 6.500 6.500l1.300-2 4 1.400v2.800a2 2 0 0 1-2.200 2A17 17 0 0 1 4.500 5.700a2 2 0 0 1 2-2.200z" />

@@ -13,9 +13,9 @@ type Props = {
   className?: string;
 };
 
-// Invite discrète à faire défiler, placée juste après la carte : elle reste
-// collée au bas de l'écran tant que la carte dépasse, puis part avec elle.
-// Une fois masquée, elle ne revient pas.
+// Bouton « Faire défiler », placé juste après la carte : il reste collé au
+// bas de l'écran tant que la carte dépasse, puis part avec elle. Il mène au
+// programme et disparaît dès qu'on fait défiler ; il ne revient pas.
 export function IndicateurDefilement({ cible, libelle, description, className = '' }: Props) {
   const [etat, setEtat] = useState<'attente' | 'visible' | 'masque'>('attente');
   const [voile, setVoile] = useState(false);
@@ -63,19 +63,19 @@ export function IndicateurDefilement({ cible, libelle, description, className = 
       <a className="indicateur__lien" href={`#${cible}`} aria-label={description}>
         <span className="indicateur__libelle">{libelle}</span>
         <svg
-          className="indicateur__chevron"
-          viewBox="0 0 14 14"
-          width="14"
-          height="14"
+          className="indicateur__fleche"
+          viewBox="0 0 18 18"
+          width="18"
+          height="18"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1"
+          strokeWidth="1.4"
           strokeLinecap="round"
           strokeLinejoin="round"
           aria-hidden="true"
           focusable="false"
         >
-          <path d="M2.500 5 7 9.500 11.500 5" />
+          <path d="M9 2.500v12.500M3.500 9.500 9 15l5.500-5.500" />
         </svg>
       </a>
     </div>

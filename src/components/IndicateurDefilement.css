@@ -27,18 +27,21 @@
   position: absolute;
   bottom: var(--indicateur-bas);
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.1rem;
-  /* zone d'appui plus large que le dessin */
-  padding: 0.7rem 1.1rem 0.4rem;
-  color: var(--or-texte);
-  font-size: 0.6875rem;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.45rem 1.05rem 0.45rem 1.25rem;
+  border: 1px solid rgb(88 113 80 / 0.55);
+  border-radius: 999px;
+  background: rgb(250 246 240 / 0.88);
+  color: var(--sauge-texte);
+  font-size: 0.9375rem;
   font-weight: 600;
   line-height: 1;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.16em;
   text-decoration: none;
   text-transform: uppercase;
+  white-space: nowrap;
   opacity: 0;
   visibility: hidden;
   pointer-events: auto;
@@ -47,24 +50,24 @@
     visibility 0s linear 0.6s;
 }
 
-/* compense l'espacement après la dernière lettre */
-.indicateur__libelle {
-  margin-right: -0.2em;
+.indicateur__lien:hover {
+  border-color: var(--sauge-texte);
 }
 
-.indicateur__chevron {
+/* compense l'espacement après la dernière lettre */
+.indicateur__libelle {
+  margin-right: -0.16em;
+}
+
+.indicateur__fleche {
   display: block;
-  color: var(--or);
+  flex: none;
 }
 
 .indicateur--visible .indicateur__lien {
-  opacity: 0.8;
+  opacity: 1;
   visibility: visible;
   transition: opacity 0.6s ease;
-}
-
-.indicateur__lien:focus-visible {
-  opacity: 1;
 }
 
 /* Voile ivoire, seulement quand l'indicateur passe par-dessus la carte */
@@ -85,14 +88,14 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .indicateur--visible .indicateur__chevron {
-    animation: indicateur-chevron 2s ease-in-out infinite;
+  .indicateur--visible .indicateur__fleche {
+    animation: indicateur-fleche 2s ease-in-out infinite;
   }
 }
 
-@keyframes indicateur-chevron {
+@keyframes indicateur-fleche {
   50% {
-    transform: translateY(4px);
+    transform: translateY(3px);
   }
 }
 

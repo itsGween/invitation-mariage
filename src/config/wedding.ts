@@ -35,38 +35,25 @@ export const wedding = {
       "C’est avec un cœur rempli de gratitude et de joie que nous nous unirons devant Dieu par le sacrement du mariage. Nous serions honorés de partager ce moment unique avec vous.",
   },
 
+  // Une carte par événement, avec l'itinéraire. `lien` : plus code Google
+  // du lieu, qui place le repère au bon endroit.
   programme: {
-    titre: 'Le programme',
+    titre: 'Programme',
+    bouton: "Voir l'itinéraire",
     etapes: [
       {
-        heure: '10h00',
-        titre: 'Messe',
-        lieu: 'à la paroisse Saint Jean-Paul II',
-        icone: 'eglise' as Icone,
-      },
-      {
-        heure: '13h30',
-        titre: 'Déjeuner',
-        lieu: "à l'espace Splendide",
-        icone: 'couverts' as Icone,
-      },
-    ],
-  },
-
-  itineraires: {
-    titre: 'Itinéraires',
-    bouton: "Voir l'itinéraire",
-    lieux: [
-      {
         titre: 'Cérémonie',
-        lignes: ['Paroisse Saint Jean-Paul II', 'Cocody, Abidjan'],
+        heure: '10h00',
+        lieu: 'Paroisse Saint Jean-Paul II',
+        adresse: 'Cocody, Abidjan',
         icone: 'eglise' as Icone,
-        // Plus code Google du lieu : place le repère au bon endroit.
         lien: 'https://www.google.com/maps/search/?api=1&query=92XH%2BG9W%20Abidjan',
       },
       {
         titre: 'Déjeuner',
-        lignes: ["L'espace Splendide", 'Angré 7ème tranche, Cocody'],
+        heure: '13h30',
+        lieu: "L'espace Splendide",
+        adresse: 'Angré 7ème tranche, Cocody',
         icone: 'couverts' as Icone,
         lien: 'https://www.google.com/maps/search/?api=1&query=92Q8%2B2F6%20Abidjan',
       },
@@ -76,40 +63,59 @@ export const wedding = {
   confirmation: {
     titre: 'Confirmation de présence',
     texte:
-      'Pour nous permettre de bien organiser cette journée, merci de confirmer votre présence le plus tôt possible.',
+      'Pour nous permettre de bien organiser cette journée, merci de confirmer votre présence avant le lundi 9 novembre.',
     // Places prévues, déduites du nom : 2 pour « M. et Mme … », 1 sinon.
     placesDeux:
       'Afin de vous accueillir dans les meilleures conditions, cette invitation est prévue uniquement pour deux personnes. Merci de votre compréhension.',
-    placesUne:
-      'Afin de vous accueillir dans les meilleures conditions, cette invitation est prévue uniquement pour une personne. Merci de votre compréhension.',
+    placesUne: 'Merci de noter : cette invitation est personnelle.',
+    // Pendant la lecture de la réponse déjà enregistrée
+    attente: 'Un instant…',
+    erreurLecture: "Votre réponse n'a pas pu être vérifiée. Merci de réessayer dans un instant.",
     boutonPresent: 'Je confirme ma présence',
     boutonAbsent: 'Je regrette de ne pas pouvoir être des vôtres',
+    // Demande de confirmation, dans la page, avant tout envoi
+    demandePresent: 'Confirmer votre présence ? Cette réponse sera définitive.',
+    demandeAbsent: 'Confirmer votre absence ? Cette réponse sera définitive.',
+    oui: 'Oui, confirmer',
+    annuler: 'Annuler',
     envoi: 'Envoi…',
-    merciPresent:
-      'Merci ! Votre présence est bien confirmée. Nous avons hâte de partager ce jour avec vous.',
+    // État final, après une réponse ou si ce lien a déjà répondu
+    merciPresent: 'Merci ! Nous avons hâte de partager ce jour avec vous.',
     merciAbsent: 'Merci pour votre réponse. Vous serez dans nos pensées en ce jour.',
-    // Affiché lors d'une visite suivante, d'après la réponse mémorisée
     rappelPresent: 'Votre réponse : présence confirmée',
     rappelAbsent: 'Votre réponse : absence',
-    modifier: 'Modifier ma réponse',
+    // « Contactez-nous » mène à la rubrique Contacts.
+    changement: 'Un changement ou une erreur ?',
+    contactez: 'Contactez-nous.',
     echec:
       "L'envoi n'a pas abouti. Merci de réessayer, ou de nous contacter au +225 07 07 86 41 82.",
     reessayer: 'Réessayer',
   },
 
-  // Encart affiché sous la réponse de l'invité, jamais avant
-  presentation: {
-    texte:
-      'Cette invitation vous a plu ? Je crée des invitations numériques personnalisées pour toutes vos cérémonies : mariages, baptêmes, anniversaires…',
-    nom: 'Gween Kangah',
-    courriel: 'kangahhansberryl7@outlook.com',
-    objet: "Demande d'invitation numérique",
+  contacts: {
+    titre: 'Contacts',
+    sousTitre: 'Joignables par appel ou WhatsApp',
+    whatsapp: 'WhatsApp',
+    telephones: [
+      {
+        numero: '+225 07 07 86 41 82',
+        appel: 'tel:+2250707864182',
+        whatsapp: 'https://wa.me/2250707864182',
+      },
+      {
+        numero: '+225 01 02 09 80 80',
+        appel: 'tel:+2250102098080',
+        whatsapp: 'https://wa.me/2250102098080',
+      },
+    ],
   },
 
-  contact: {
-    titre: 'Nous contacter',
-    courriel: 'christelleahua@yahoo.fr',
-    telephone: '+225 07 07 86 41 82',
+  // Pied de page, tout en bas de l'invitation ouverte
+  credit: {
+    auteur: 'Invitation conçue par Gween Kangah',
+    offre: 'Invitations numériques sur mesure pour vos mariages, baptêmes et cérémonies',
+    courriel: 'kangahhansberryl7@outlook.com',
+    objet: "Demande d'invitation numérique",
   },
 
   // En-tête de la version ordinateur
@@ -117,15 +123,14 @@ export const wedding = {
     accueil: 'Accueil',
     invitation: 'Invitation',
     programme: 'Programme',
-    itineraires: 'Itinéraires',
     confirmation: 'Confirmation',
     bouton: 'Confirmer ma présence',
   },
 
-  // Indicateur de défilement sous la carte (mobile)
+  // Bouton sous la carte (mobile) : mène au programme
   indicateur: {
-    libelle: 'Découvrir',
-    description: 'Voir le programme',
+    libelle: 'Faire défiler',
+    description: 'Faire défiler jusqu’au programme',
   },
 
   lienInvalide: {

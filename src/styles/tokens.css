@@ -3,6 +3,8 @@
   /* aussi la teinte de l'enveloppe */
   --sauge-profonde: #6f8a63;
   --enveloppe: var(--sauge-profonde);
+  /* sauge assombrie pour le texte sur ivoire (contraste 5:1) */
+  --sauge-texte: #587150;
   /* fond des sections Programme et Confirmation, prélevé sur la maquette */
   --vert-foret: #344733;
   --blush: #ddb4b0;

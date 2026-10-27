@@ -19,13 +19,21 @@ export function codeValide(brut: unknown): string | null {
   return codeBienForme(code) ? code : null;
 }
 
-/** Nom de l'invité tel qu'écrit dans invites.csv, ou `null` si le code est inconnu. */
-export async function nomDepuisCode(code: string): Promise<string | null> {
+/**
+ * Identifiant dérivé du code et nom de l'invité tel qu'écrit dans
+ * invites.csv, ou `null` si le code est inconnu.
+ */
+export async function inviteDepuisCode(code: string): Promise<{ id: string; nom: string } | null> {
   const { sel, iterations } = wedding.acces;
   const { id, cle } = await deriver(code, sel, iterations);
   const entree = (donnees as InviteChiffre[]).find((e) => e.id === id);
   if (!entree) return null;
-  return dechiffrerNom(cle, entree.iv, entree.nom);
+  return { id, nom: await dechiffrerNom(cle, entree.iv, entree.nom) };
+}
+
+/** Nom de l'invité tel qu'écrit dans invites.csv, ou `null` si le code est inconnu. */
+export async function nomDepuisCode(code: string): Promise<string | null> {
+  return (await inviteDepuisCode(code))?.nom ?? null;
 }
 
 /** Places prévues par l'invitation, déduites du nom : 2 pour « M. et Mme … », 1 sinon. */
