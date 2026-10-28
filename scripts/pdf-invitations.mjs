@@ -17,6 +17,7 @@
 //   feuilles: { Maman: [noms], Papa: [noms] },   // ordre de la feuille
 //   doublons: { variante: nom déjà présent },     // doublons probables
 //   remplace: { nom: [anciens noms] },            // liens individuels remplacés
+//   corrections: { ancien nom: nom corrigé },     // → Noms-corriges-et-liens.pdf
 // }
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -81,9 +82,10 @@ const messageHtml = ({ message, lien }) =>
 const mentionsHtml = (mentions = []) =>
   mentions.map((m) => `<p class="mention">${echapper(m)}</p>`).join('');
 
-// Réponse déjà reçue : l'invité n'a pas à être relancé.
+// Réponse déjà reçue : l'invité n'a pas à être relancé (PDF de Patrice).
+let afficherReponses = false;
 const reponseHtml = (nom) =>
-  reponses.has(nom)
+  afficherReponses && reponses.has(nom)
     ? `<p class="deja-repondu">${reponses.get(nom) === 'present' ? '✓ Présence déjà confirmée' : 'Absence déjà signalée'}</p>`
     : '';
 
@@ -125,8 +127,8 @@ const partieHtml = ({ titre, intro, invites: liste = [], doublons = [], noms }) 
   ${doublons.map((d, i) => doublonHtml(d, i + 1)).join('\n  ')}
   ${noms ? `<ul class="noms">${noms.map((n) => `<li>${echapper(n)}</li>`).join('')}</ul>` : ''}`;
 
-function pageHtml({ sousTitre, parties = [], corps }) {
-  const titre = `Invitations : mariage de ${elle} & ${lui}`;
+function pageHtml({ sousTitre, parties = [], corps, titreDocument }) {
+  const titre = titreDocument ?? `Invitations : mariage de ${elle} & ${lui}`;
   return `<!doctype html>
 <html lang="fr">
 <head>
@@ -236,13 +238,15 @@ function pageHtml({ sousTitre, parties = [], corps }) {
     font: 10.5pt/1.4 Consolas, 'Courier New', monospace;
   }
   .mode p { margin: 0 0 2mm; }
+  .ancien { margin: 0 0 0.5mm; color: #6b7566; font-size: 13pt; }
+  .ancien s { text-decoration-thickness: 1pt; text-decoration-color: #6b3a35; }
   .mode + .mode { margin-top: 6mm; }
 </style>
 </head>
 <body>
   <header class="entete">
     <p class="monogramme">${echapper(wedding.maries.monogramme)}</p>
-    <h1>Invitations : mariage de <span class="insecable">${echapper(elle)} &amp; ${echapper(lui)}</span></h1>
+    <h1>${titreDocument ? echapper(titreDocument) : `Invitations : mariage de <span class="insecable">${echapper(elle)} &amp; ${echapper(lui)}</span>`}</h1>
     ${sousTitre ? `<p class="sous-titre">${echapper(sousTitre)}</p>` : ''}
     <span class="filet"></span>
   </header>
@@ -361,6 +365,7 @@ try {
       ? documents.filter(([nomFichier]) => nomFichier.toLowerCase().includes(seulement))
       : documents;
     for (const [nomFichier, sousTitre, parties] of choisis) {
+      afficherReponses = nomFichier.includes('Papa');
       await imprimer(nav, path.join(racine, nomFichier), pageHtml({ sousTitre, parties }));
       const detail = parties.map((p) => `${p.titre} : ${(p.invites?.length ?? 0) + (p.doublons?.length ?? 0)}`);
       console.log(`Écrit : ${nomFichier} (${detail.join(', ')})`);
@@ -380,6 +385,32 @@ try {
       tous.map((i) => ({ ...i, liste: liste(i.nom), statut: statut(i.nom) })),
     );
     console.log('Écrit : liens.xlsx');
+
+    // Noms corrigés : ancien nom barré, nouveau nom, même lien
+    const corrections = Object.entries(listes.corrections ?? {});
+    if (corrections.length && !seulement) {
+      const fichier = path.join(racine, 'Noms-corriges-et-liens.pdf');
+      const listeDe = (nom) => {
+        const m = surMaman.has(nom) || existants.has(nom) || reactives.has(nom);
+        const p = surPapa.has(nom);
+        return m && p ? 'Listes de Maman et de Papa' : p ? 'Liste de Papa' : 'Liste de Maman';
+      };
+      const blocs = corrections.map(([ancien, nouveau], i) => {
+        const trouve = invite(nouveau);
+        return `<section class="invite">
+    <p class="ancien"><span class="numero">${i + 1}.</span> <s>${echapper(ancien)}</s></p>
+    <h3>${echapper(nouveau)}</h3>
+    <p class="mention">${listeDe(nouveau)}</p>
+    <p class="mention">Lien inchangé : si vous l'avez déjà envoyé, l'invité verra automatiquement le nom corrigé. Inutile de le renvoyer.</p>
+    <p class="message">${messageHtml(trouve)}</p>
+    <p class="envoye"><span class="case">☐</span> Envoyé</p>
+  </section>`;
+      });
+      const corps = `<p class="intro">L'orthographe de ces invités a été corrigée. Chaque lien reste le même et affiche désormais le nom corrigé.</p>
+  ${blocs.join('\n  ')}`;
+      await imprimer(nav, fichier, pageHtml({ titreDocument: 'Noms corrigés et liens', corps }));
+      console.log(`Écrit : ${path.basename(fichier)} (${corrections.length} noms)`);
+    }
   }
 
   // Liens de test, pour Gween uniquement

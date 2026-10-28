@@ -13,6 +13,7 @@
     "reponses": "node scripts/reponses.mjs liste",
     "reponse": "node scripts/reponses.mjs enregistrer",
     "reinitialiser": "node scripts/reponses.mjs reinitialiser",
+    "rapport": "node scripts/rapport-reponses.mjs",
     "captures": "node scripts/captures.mjs",
     "apercu": "node scripts/apercu.mjs"
   },
