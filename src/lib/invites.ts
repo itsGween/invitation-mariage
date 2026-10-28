@@ -36,7 +36,10 @@ export async function nomDepuisCode(code: string): Promise<string | null> {
   return (await inviteDepuisCode(code))?.nom ?? null;
 }
 
-/** Places prévues par l'invitation, déduites du nom : 2 pour « M. et Mme … », 1 sinon. */
+/**
+ * Places prévues par l'invitation, déduites du nom : 2 si le nom contient
+ * « et Mme » (« M. et Mme … », « Maître et Mme … », « Commissaire et Mme … »), 1 sinon.
+ */
 export function nombrePlaces(nom: string): 1 | 2 {
-  return /^M\.\s+et\s+Mme\s/.test(nom) ? 2 : 1;
+  return /(^|\s)et\s+Mme\s/.test(nom) ? 2 : 1;
 }

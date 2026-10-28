@@ -7,12 +7,16 @@
 // - sinon : un seul PDF avec tous les invités, dans l'ordre de invites.csv.
 // Régénère aussi liens.xlsx, et écrit Liens-de-test-Gween.pdf (liens de test
 // et commandes de remise à zéro).
+// `npm run pdf -- papa` (ou `maman`) n'écrit que le PDF de cette liste.
+// Si .env.local est rempli, chaque invité qui a déjà répondu porte la mention
+// « Présence déjà confirmée » ou « Absence déjà signalée ».
 //
 // invites.listes.json : {
 //   existants: [noms dont le lien a déjà été transmis],
 //   reactives: [anciens noms réintégrés avec leur code d'origine],
 //   feuilles: { Maman: [noms], Papa: [noms] },   // ordre de la feuille
 //   doublons: { variante: nom déjà présent },     // doublons probables
+//   remplace: { nom: [anciens noms] },            // liens individuels remplacés
 // }
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -20,6 +24,8 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { chromium } from 'playwright-core';
 import { wedding } from '../src/config/wedding.ts';
+import { deriver } from '../src/lib/crypto.ts';
+import { lireReponse, registre } from '../src/lib/registre.ts';
 import { ecrireXlsx, lireLiens } from './exports-liens.mjs';
 
 // Nom dont le lien sert d'aperçu : présenté à part, hors de la liste.
@@ -33,6 +39,8 @@ const racine = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const FICHIER_LIENS = path.join(racine, 'liens.csv');
 const FICHIER_LISTES = path.join(racine, 'invites.listes.json');
 const FICHIER_XLSX = path.join(racine, 'liens.xlsx');
+const FICHIER_ENV = path.join(racine, '.env.local');
+const seulement = process.argv[2]?.toLowerCase();
 
 if (!existsSync(FICHIER_LIENS)) {
   console.error("liens.csv introuvable : lancez d'abord `npm run liens`.");
@@ -43,6 +51,23 @@ const { apercu, invites: inscrits, tous } = await lireLiens(FICHIER_LIENS, NOM_A
 const invites = inscrits.filter((invite) => !NOMS_TEST.includes(invite.nom));
 const parNom = new Map(tous.map((invite) => [invite.nom, invite]));
 const { elle, lui } = wedding.maries;
+
+// Réponses déjà enregistrées (Redis), par nom ; vide si .env.local n'est pas rempli.
+const reponses = new Map();
+if (existsSync(FICHIER_ENV)) process.loadEnvFile(FICHIER_ENV);
+const redis = registre();
+if (redis) {
+  const { sel, iterations } = wedding.acces;
+  await Promise.all(
+    tous.map(async ({ nom, lien }) => {
+      const code = new URL(lien).searchParams.get('i');
+      const trouvee = await lireReponse(redis, (await deriver(code, sel, iterations)).id);
+      if (trouvee) reponses.set(nom, trouvee.reponse);
+    }),
+  );
+} else {
+  console.warn('  ! .env.local vide : les PDF ne signalent pas les réponses déjà reçues.');
+}
 
 const echapper = (texte) =>
   texte.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -56,9 +81,16 @@ const messageHtml = ({ message, lien }) =>
 const mentionsHtml = (mentions = []) =>
   mentions.map((m) => `<p class="mention">${echapper(m)}</p>`).join('');
 
+// Réponse déjà reçue : l'invité n'a pas à être relancé.
+const reponseHtml = (nom) =>
+  reponses.has(nom)
+    ? `<p class="deja-repondu">${reponses.get(nom) === 'present' ? '✓ Présence déjà confirmée' : 'Absence déjà signalée'}</p>`
+    : '';
+
 const inviteHtml = (invite, numero) => `<section class="invite">
     <h3><span class="numero">${numero}.</span> ${echapper(invite.nom)}</h3>
     ${mentionsHtml(invite.mentions)}
+    ${reponseHtml(invite.nom)}
     <p class="message">${messageHtml(invite)}</p>
     <p class="envoye"><span class="case">☐</span> Envoyé</p>
   </section>`;
@@ -71,12 +103,14 @@ const doublonHtml = ({ existant, variante }, numero) => `<section class="invite 
         <p class="etiquette">Déjà présent</p>
         <h3>${echapper(existant.nom)}</h3>
         ${mentionsHtml(existant.mentions)}
+        ${reponseHtml(existant.nom)}
         <p class="lien-seul">${lienHtml(existant.lien)}</p>
       </div>
       <div class="colonne colonne--nouvelle">
         <p class="etiquette">Nouvelle variante</p>
         <h3>${echapper(variante.nom)}</h3>
         ${mentionsHtml(variante.mentions)}
+        ${reponseHtml(variante.nom)}
         <p class="lien-seul">${lienHtml(variante.lien)}</p>
       </div>
     </div>
@@ -161,6 +195,7 @@ function pageHtml({ sousTitre, parties = [], corps }) {
   .invite h3 { margin: 0 0 1.5mm; color: #344733; font-size: 15pt; font-weight: 700; line-height: 1.2; }
   .numero { color: #9a7b3f; }
   .mention { margin: -0.5mm 0 1.5mm; color: #9a7b3f; font-size: 12pt; font-style: italic; }
+  .deja-repondu { margin: -0.5mm 0 1.5mm; color: #3f6b3a; font-size: 12.5pt; font-weight: 700; }
   .message {
     margin: 0;
     padding: 3mm 3.5mm;
@@ -259,6 +294,11 @@ try {
     const doublons = listes.doublons ?? {};
     const surMaman = new Set(listes.feuilles.Maman);
     const surPapa = new Set(listes.feuilles.Papa);
+    const remplace = listes.remplace ?? {};
+    const guillemets = (noms) => noms.map((n) => `« ${n} »`).join(' et ');
+    // Couple qui remplace des liens individuels de la liste précédente (toujours actifs).
+    const remplaceMention = (nom) =>
+      remplace[nom] ? [`Remplace ${guillemets(remplace[nom])} de la liste précédente`] : [];
     const invite = (nom, mentions = []) => {
       const trouve = parNom.get(nom);
       if (!trouve) throw new Error(`Nom absent de liens.csv : ${nom}`);
@@ -301,14 +341,14 @@ try {
       {
         titre: 'Les invités',
         invites: listes.feuilles.Papa.filter((n) => !doublons[n]).map((n) =>
-          invite(n, [...dejaTransmis(n), ...aussiMaman(n)]),
+          invite(n, [...dejaTransmis(n), ...aussiMaman(n), ...remplaceMention(n)]),
         ),
       },
       {
         titre: 'Potentiels doublons à vérifier',
         doublons: listes.feuilles.Papa.filter((n) => doublons[n]).map((n) => ({
           existant: invite(doublons[n], dejaTransmis(doublons[n])),
-          variante: invite(n, aussiMaman(n)),
+          variante: invite(n, [...aussiMaman(n), ...remplaceMention(n)]),
         })),
       },
     ];
@@ -317,7 +357,10 @@ try {
       ['Invitations-Mariage-Liste-Maman.pdf', `Liste de ${elle}`, maman],
       ['Invitations-Mariage-Liste-Papa.pdf', `Liste de ${lui}`, papa],
     ];
-    for (const [nomFichier, sousTitre, parties] of documents) {
+    const choisis = seulement
+      ? documents.filter(([nomFichier]) => nomFichier.toLowerCase().includes(seulement))
+      : documents;
+    for (const [nomFichier, sousTitre, parties] of choisis) {
       await imprimer(nav, path.join(racine, nomFichier), pageHtml({ sousTitre, parties }));
       const detail = parties.map((p) => `${p.titre} : ${(p.invites?.length ?? 0) + (p.doublons?.length ?? 0)}`);
       console.log(`Écrit : ${nomFichier} (${detail.join(', ')})`);
@@ -326,7 +369,7 @@ try {
     // Excel : colonnes Liste et Statut
     const liste = (nom) => {
       if (nom === NOM_APERCU) return 'Aperçu (test)';
-    if (NOMS_TEST.includes(nom)) return 'Test';
+      if (NOMS_TEST.includes(nom)) return 'Test';
       const m = surMaman.has(nom) || existants.has(nom) || reactives.has(nom);
       const p = surPapa.has(nom);
       return m && p ? 'Maman et Papa' : p ? 'Papa' : 'Maman';
