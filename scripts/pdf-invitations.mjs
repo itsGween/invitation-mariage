@@ -2,19 +2,19 @@
 // À partir de liens.csv (produit par `npm run liens`), écrit les PDF des liens
 // (A5, à lire sur téléphone), imprimés par Chrome (Playwright) :
 // - si invites.listes.json existe (répartition par feuille de la liste
-//   source, ignoré par git) : un PDF pour la liste de Marie-Christelle et un
-//   pour celle de Patrice ;
+//   source, ignoré par git) : un PDF pour la liste de Marie-Christelle, un
+//   pour celle de Patrice et, si la feuille existe, Nouvelle-liste.pdf ;
 // - sinon : un seul PDF avec tous les invités, dans l'ordre de invites.csv.
 // Régénère aussi liens.xlsx, et écrit Liens-de-test-Gween.pdf (liens de test
 // et commandes de remise à zéro).
-// `npm run pdf -- papa` (ou `maman`) n'écrit que le PDF de cette liste.
+// `npm run pdf -- papa` (ou `maman`, `nouvelle`) n'écrit que le PDF de cette liste.
 // Si .env.local est rempli, chaque invité qui a déjà répondu porte la mention
 // « Présence déjà confirmée » ou « Absence déjà signalée ».
 //
 // invites.listes.json : {
 //   existants: [noms dont le lien a déjà été transmis],
 //   reactives: [anciens noms réintégrés avec leur code d'origine],
-//   feuilles: { Maman: [noms], Papa: [noms] },   // ordre de la feuille
+//   feuilles: { Maman: [noms], Papa: [noms], 'Nouvelle liste': [noms] },   // ordre de la feuille
 //   doublons: { variante: nom déjà présent },     // doublons probables
 //   remplace: { nom: [anciens noms] },            // liens individuels remplacés
 //   corrections: { ancien nom: nom corrigé },     // → Noms-corriges-et-liens.pdf
@@ -298,6 +298,8 @@ try {
     const doublons = listes.doublons ?? {};
     const surMaman = new Set(listes.feuilles.Maman);
     const surPapa = new Set(listes.feuilles.Papa);
+    const nouvelleListe = listes.feuilles['Nouvelle liste'] ?? [];
+    const surNouvelle = new Set(nouvelleListe);
     const remplace = listes.remplace ?? {};
     const guillemets = (noms) => noms.map((n) => `« ${n} »`).join(' et ');
     // Couple qui remplace des liens individuels de la liste précédente (toujours actifs).
@@ -357,16 +359,27 @@ try {
       },
     ];
 
+    // Nouvelle liste : dans l'ordre de la feuille ; les invités qui avaient déjà
+    // un lien sur la liste de Patrice le gardent.
+    const dejaSurPapa = (nom) =>
+      surPapa.has(nom)
+        ? [`Lien déjà existant (liste de ${lui}) : si vous l'avez déjà envoyé, inutile de le renvoyer.`]
+        : [];
+    const nouvelle = [{ titre: 'Les invités', invites: nouvelleListe.map((n) => invite(n, dejaSurPapa(n))) }];
+
     const documents = [
-      ['Invitations-Mariage-Liste-Maman.pdf', `Liste de ${elle}`, maman],
-      ['Invitations-Mariage-Liste-Papa.pdf', `Liste de ${lui}`, papa],
+      ['Invitations-Mariage-Liste-Maman.pdf', { sousTitre: `Liste de ${elle}` }, maman],
+      ['Invitations-Mariage-Liste-Papa.pdf', { sousTitre: `Liste de ${lui}` }, papa],
+      ...(nouvelleListe.length
+        ? [['Nouvelle-liste.pdf', { titreDocument: 'Nouvelle liste', sousTitre: `Invitations : mariage de ${elle} & ${lui}` }, nouvelle]]
+        : []),
     ];
     const choisis = seulement
       ? documents.filter(([nomFichier]) => nomFichier.toLowerCase().includes(seulement))
       : documents;
-    for (const [nomFichier, sousTitre, parties] of choisis) {
+    for (const [nomFichier, titres, parties] of choisis) {
       afficherReponses = nomFichier.includes('Papa');
-      await imprimer(nav, path.join(racine, nomFichier), pageHtml({ sousTitre, parties }));
+      await imprimer(nav, path.join(racine, nomFichier), pageHtml({ ...titres, parties }));
       const detail = parties.map((p) => `${p.titre} : ${(p.invites?.length ?? 0) + (p.doublons?.length ?? 0)}`);
       console.log(`Écrit : ${nomFichier} (${detail.join(', ')})`);
     }
@@ -377,7 +390,9 @@ try {
       if (NOMS_TEST.includes(nom)) return 'Test';
       const m = surMaman.has(nom) || existants.has(nom) || reactives.has(nom);
       const p = surPapa.has(nom);
-      return m && p ? 'Maman et Papa' : p ? 'Papa' : 'Maman';
+      const n = surNouvelle.has(nom);
+      const noms = [m && 'Maman', p && 'Papa', n && 'Nouvelle liste'].filter(Boolean);
+      return noms.length ? noms.join(' et ') : 'Maman';
     };
     const statut = (nom) => (NOMS_TEST.includes(nom) ? '' : existants.has(nom) ? 'Déjà transmis' : 'Nouveau');
     await ecrireXlsx(
@@ -393,7 +408,8 @@ try {
       const listeDe = (nom) => {
         const m = surMaman.has(nom) || existants.has(nom) || reactives.has(nom);
         const p = surPapa.has(nom);
-        return m && p ? 'Listes de Maman et de Papa' : p ? 'Liste de Papa' : 'Liste de Maman';
+        const base = m && p ? 'Listes de Maman et de Papa' : p ? 'Liste de Papa' : 'Liste de Maman';
+        return surNouvelle.has(nom) ? `${base}, et Nouvelle liste` : base;
       };
       const blocs = corrections.map(([ancien, nouveau], i) => {
         const trouve = invite(nouveau);

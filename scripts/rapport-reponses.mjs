@@ -63,6 +63,7 @@ for (const [id, enregistrement] of enregistrees) {
 // Liste d'origine de chaque nom
 const surMaman = new Set([...listes.feuilles.Maman, ...listes.existants, ...(listes.reactives ?? [])]);
 const surPapa = new Set(listes.feuilles.Papa);
+const surNouvelle = new Set(listes.feuilles['Nouvelle liste'] ?? []);
 const doublons = listes.doublons ?? {};
 // Anciens liens individuels remplacés par un couple : ancien nom → couple
 const remplacePar = new Map(
@@ -71,7 +72,9 @@ const remplacePar = new Map(
 const liste = (nom) => {
   const m = surMaman.has(nom);
   const p = surPapa.has(nom) || remplacePar.has(nom);
-  return m && p ? 'Les deux' : m ? 'Maman' : p ? 'Papa' : '—';
+  const base = m && p ? 'Les deux' : m ? 'Maman' : p ? 'Papa' : null;
+  if (surNouvelle.has(nom)) return base ? `${base} et Nouvelle liste` : 'Nouvelle liste';
+  return base ?? '—';
 };
 
 // Mentions : doublon possible, ancien lien remplacé
