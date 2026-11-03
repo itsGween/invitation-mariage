@@ -61,8 +61,10 @@ for (const [id, enregistrement] of enregistrees) {
 }
 
 // Liste d'origine de chaque nom
-const surMaman = new Set([...listes.feuilles.Maman, ...listes.existants, ...(listes.reactives ?? [])]);
-const surPapa = new Set(listes.feuilles.Papa);
+// (feuille d'origine + ajouts : { Maman|Papa: { date: { invites: [noms] } } })
+const ajoutes = (l) => Object.values(listes.ajouts?.[l] ?? {}).flatMap((a) => a.invites ?? []);
+const surMaman = new Set([...listes.feuilles.Maman, ...listes.existants, ...(listes.reactives ?? []), ...ajoutes('Maman')]);
+const surPapa = new Set([...listes.feuilles.Papa, ...ajoutes('Papa')]);
 const surNouvelle = new Set(listes.feuilles['Nouvelle liste'] ?? []);
 const doublons = listes.doublons ?? {};
 // Anciens liens individuels remplacés par un couple : ancien nom → couple
@@ -158,7 +160,7 @@ const tableauAbsents = absents.length
 const LISTES = [
   ['Maman', (nom) => surMaman.has(nom)],
   ['Papa', (nom) => surPapa.has(nom) || remplacePar.has(nom)],
-  ['Nouvelle liste', (nom) => surNouvelle.has(nom)],
+  ...(surNouvelle.size ? [['Nouvelle liste', (nom) => surNouvelle.has(nom)]] : []),
 ];
 const groupesSans = LISTES.map(([titre, contient]) => ({
   titre,

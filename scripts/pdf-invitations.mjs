@@ -2,22 +2,24 @@
 // À partir de liens.csv (produit par `npm run liens`), écrit les PDF des liens
 // (A5, à lire sur téléphone), imprimés par Chrome (Playwright) :
 // - si invites.listes.json existe (répartition par feuille de la liste
-//   source, ignoré par git) : un PDF pour la liste de Marie-Christelle, un
-//   pour celle de Patrice et, si la feuille existe, Nouvelle-liste.pdf ;
+//   source, ignoré par git) : un PDF pour la liste de Marie-Christelle et un
+//   pour celle de Patrice, chacun suivi de ses ajouts (« Nouveaux liens ») ;
 // - sinon : un seul PDF avec tous les invités, dans l'ordre de invites.csv.
 // Régénère aussi liens.xlsx, et écrit Liens-de-test-Gween.pdf (liens de test
 // et commandes de remise à zéro).
-// `npm run pdf -- papa` (ou `maman`, `nouvelle`) n'écrit que le PDF de cette liste.
+// `npm run pdf -- papa` (ou `maman`) n'écrit que le PDF de cette liste.
 // Si .env.local est rempli, chaque invité qui a déjà répondu porte la mention
 // « Présence déjà confirmée » ou « Absence déjà signalée ».
 //
 // invites.listes.json : {
 //   existants: [noms dont le lien a déjà été transmis],
 //   reactives: [anciens noms réintégrés avec leur code d'origine],
-//   feuilles: { Maman: [noms], Papa: [noms], 'Nouvelle liste': [noms] },   // ordre de la feuille
+//   feuilles: { Maman: [noms], Papa: [noms] },    // contenu d'origine, ordre de la feuille
+//   ajouts: { Maman|Papa: { date: { invites: [noms], corrections?: true } } },
+//                                                 // en bas du PDF, « Nouveaux liens (date) »
 //   doublons: { variante: nom déjà présent },     // doublons probables
 //   remplace: { nom: [anciens noms] },            // liens individuels remplacés
-//   corrections: { ancien nom: nom corrigé },     // → Noms-corriges-et-liens.pdf
+//   corrections: { ancien nom: nom corrigé },     // ajout avec corrections: true
 // }
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -120,13 +122,32 @@ const doublonHtml = ({ existant, variante }, numero) => `<section class="invite 
     <p class="envoye"><span class="case">☐</span> Envoyé</p>
   </section>`;
 
+// Nom corrigé : ancien nom barré, nouveau nom, même lien.
+const correctionHtml = ({ ancien, invite }, numero) => `<section class="invite">
+    <p class="ancien"><span class="numero">${numero}.</span> <s>${echapper(ancien)}</s></p>
+    <h3>${echapper(invite.nom)}</h3>
+    ${mentionsHtml(invite.mentions)}
+    ${reponseHtml(invite.nom)}
+    <p class="message">${messageHtml(invite)}</p>
+    <p class="envoye"><span class="case">☐</span> Envoyé</p>
+  </section>`;
+
 // `debut` : numéro du premier invité, pour une partie qui continue la numérotation.
-const partieHtml = ({ titre, intro, invites: liste = [], doublons = [], noms, debut = 1 }) => `
-  <p class="section-titre">${echapper(titre)} (${liste.length + doublons.length + (noms?.length ?? 0)})</p>
+// `sousParties` : [{ titre, invites | corrections }], numérotées chacune à partir de 1.
+// `sansTotal` : titre affiché sans le nombre d'invités.
+const partieHtml = ({ titre, intro, invites: liste = [], doublons = [], noms, debut = 1, sousParties = [], sansTotal }) => `
+  <p class="section-titre">${echapper(titre)}${sansTotal ? '' : ` (${liste.length + doublons.length + (noms?.length ?? 0)})`}</p>
   ${intro ? `<p class="intro">${echapper(intro)}</p>` : ''}
   ${liste.map((invite, i) => inviteHtml(invite, debut + i)).join('\n  ')}
   ${doublons.map((d, i) => doublonHtml(d, i + 1)).join('\n  ')}
-  ${noms ? `<ul class="noms">${noms.map((n) => `<li>${echapper(n)}</li>`).join('')}</ul>` : ''}`;
+  ${noms ? `<ul class="noms">${noms.map((n) => `<li>${echapper(n)}</li>`).join('')}</ul>` : ''}
+  ${sousParties
+    .map(
+      (sp) => `<h2 class="sous-partie">${echapper(sp.titre)} (${(sp.invites ?? sp.corrections).length})</h2>
+  ${(sp.invites ?? []).map((invite, i) => inviteHtml(invite, i + 1)).join('\n  ')}
+  ${(sp.corrections ?? []).map((c, i) => correctionHtml(c, i + 1)).join('\n  ')}`,
+    )
+    .join('\n  ')}`;
 
 function pageHtml({ sousTitre, parties = [], corps, titreDocument }) {
   const titre = titreDocument ?? `Invitations : mariage de ${elle} & ${lui}`;
@@ -242,6 +263,8 @@ function pageHtml({ sousTitre, parties = [], corps, titreDocument }) {
   .ancien { margin: 0 0 0.5mm; color: #6b7566; font-size: 13pt; }
   .ancien s { text-decoration-thickness: 1pt; text-decoration-color: #6b3a35; }
   .mode + .mode { margin-top: 6mm; }
+  .sous-partie { margin: 2mm 0 4mm; text-align: center; }
+  .invite + .sous-partie { margin-top: 8mm; padding-top: 4mm; border-top: 0.8pt solid #d9bc82; }
 </style>
 </head>
 <body>
@@ -271,7 +294,7 @@ function pageHtml({ sousTitre, parties = [], corps, titreDocument }) {
   </section>`
       : ''
   }
-  ${parties.filter((p) => p.invites?.length || p.doublons?.length || p.noms?.length).map(partieHtml).join('\n')}
+  ${parties.filter((p) => p.invites?.length || p.doublons?.length || p.noms?.length || p.sousParties?.length).map(partieHtml).join('\n')}
 `}
 </body>
 </html>`;
@@ -299,8 +322,10 @@ try {
     const doublons = listes.doublons ?? {};
     const surMaman = new Set(listes.feuilles.Maman);
     const surPapa = new Set(listes.feuilles.Papa);
-    const nouvelleListe = listes.feuilles['Nouvelle liste'] ?? [];
-    const surNouvelle = new Set(nouvelleListe);
+    // Ajouts ultérieurs, en bas du PDF de la liste :
+    // ajouts: { Maman|Papa: { date: { invites: [noms], corrections?: true } } }
+    const ajoutsDe = (liste) => Object.entries(listes.ajouts?.[liste] ?? {});
+    const ajoutes = (liste) => ajoutsDe(liste).flatMap(([, a]) => a.invites ?? []);
     const remplace = listes.remplace ?? {};
     const guillemets = (noms) => noms.map((n) => `« ${n} »`).join(' et ');
     // Couple qui remplace des liens individuels de la liste précédente (toujours actifs).
@@ -360,30 +385,37 @@ try {
       },
     ];
 
-    // Nouvelle liste : dans l'ordre de la feuille ; les invités qui avaient déjà
-    // un lien sur la liste de Patrice le gardent.
-    const dejaSurPapa = (nom) =>
-      surPapa.has(nom)
-        ? [`Lien déjà existant (liste de ${lui}) : si vous l'avez déjà envoyé, inutile de le renvoyer.`]
-        : [];
-    // Ajouts ultérieurs (`ajouts['Nouvelle liste']` : { 'date': [noms] }) : une
-    // partie par date, numérotée à la suite des invités d'origine.
-    const ajouts = Object.entries(listes.ajouts?.['Nouvelle liste'] ?? {});
-    const ajoutes = new Set(ajouts.flatMap(([, noms]) => noms));
-    const origine = nouvelleListe.filter((n) => !ajoutes.has(n));
-    const nouvelle = [{ titre: 'Les invités', invites: origine.map((n) => invite(n, dejaSurPapa(n))) }];
-    let suivant = origine.length + 1;
-    for (const [date, noms] of ajouts) {
-      nouvelle.push({ titre: `Ajouts du ${date}`, debut: suivant, invites: noms.map((n) => invite(n, dejaSurPapa(n))) });
-      suivant += noms.length;
-    }
+    // Ajouts : une partie « Nouveaux liens (date) » tout en bas du PDF, après le
+    // contenu d'origine (inchangé). Les invités déjà sur la feuille d'origine
+    // gardent leur lien ; les noms corrigés gardent aussi le leur.
+    const dejaSurFeuille = (feuille) => (nom) =>
+      feuille.has(nom) ? ["Lien déjà existant : si vous l'avez déjà envoyé, inutile de le renvoyer."] : [];
+    const corrigesHtml = Object.entries(listes.corrections ?? {}).map(([ancien, nouveau]) => ({
+      ancien,
+      invite: invite(nouveau, [
+        "Lien inchangé : si vous l'avez déjà envoyé, l'invité verra automatiquement le nom corrigé. Inutile de le renvoyer.",
+      ]),
+    }));
+    const partiesAjouts = (liste, feuille) =>
+      ajoutsDe(liste).map(([date, { invites: noms = [], corrections }]) => {
+        const invitesAjoutes = noms.map((n) => invite(n, dejaSurFeuille(feuille)(n)));
+        return corrections
+          ? {
+              titre: `Nouveaux liens (${date})`,
+              sansTotal: true,
+              sousParties: [
+                { titre: 'Invités ajoutés', invites: invitesAjoutes },
+                { titre: 'Noms corrigés', corrections: corrigesHtml },
+              ],
+            }
+          : { titre: `Nouveaux liens (${date})`, sansTotal: true, invites: invitesAjoutes };
+      });
+    maman.push(...partiesAjouts('Maman', surMaman));
+    papa.push(...partiesAjouts('Papa', surPapa));
 
     const documents = [
       ['Invitations-Mariage-Liste-Maman.pdf', { sousTitre: `Liste de ${elle}` }, maman],
       ['Invitations-Mariage-Liste-Papa.pdf', { sousTitre: `Liste de ${lui}` }, papa],
-      ...(nouvelleListe.length
-        ? [['Nouvelle-liste.pdf', { titreDocument: 'Nouvelle liste', sousTitre: `Invitations : mariage de ${elle} & ${lui}` }, nouvelle]]
-        : []),
     ];
     const choisis = seulement
       ? documents.filter(([nomFichier]) => nomFichier.toLowerCase().includes(seulement))
@@ -391,7 +423,11 @@ try {
     for (const [nomFichier, titres, parties] of choisis) {
       afficherReponses = nomFichier.includes('Papa');
       await imprimer(nav, path.join(racine, nomFichier), pageHtml({ ...titres, parties }));
-      const detail = parties.map((p) => `${p.titre} : ${(p.invites?.length ?? 0) + (p.doublons?.length ?? 0)}`);
+      const detail = parties.map((p) =>
+        p.sousParties
+          ? `${p.titre} : ${p.sousParties.map((sp) => `${sp.titre} ${(sp.invites ?? sp.corrections).length}`).join(' + ')}`
+          : `${p.titre} : ${(p.invites?.length ?? 0) + (p.doublons?.length ?? 0)}`,
+      );
       console.log(`Écrit : ${nomFichier} (${detail.join(', ')})`);
     }
 
@@ -399,10 +435,9 @@ try {
     const liste = (nom) => {
       if (nom === NOM_APERCU) return 'Aperçu (test)';
       if (NOMS_TEST.includes(nom)) return 'Test';
-      const m = surMaman.has(nom) || existants.has(nom) || reactives.has(nom);
-      const p = surPapa.has(nom);
-      const n = surNouvelle.has(nom);
-      const noms = [m && 'Maman', p && 'Papa', n && 'Nouvelle liste'].filter(Boolean);
+      const m = surMaman.has(nom) || existants.has(nom) || reactives.has(nom) || ajoutes('Maman').includes(nom);
+      const p = surPapa.has(nom) || ajoutes('Papa').includes(nom);
+      const noms = [m && 'Maman', p && 'Papa'].filter(Boolean);
       return noms.length ? noms.join(' et ') : 'Maman';
     };
     const statut = (nom) => (NOMS_TEST.includes(nom) ? '' : existants.has(nom) ? 'Déjà transmis' : 'Nouveau');
@@ -411,33 +446,6 @@ try {
       tous.map((i) => ({ ...i, liste: liste(i.nom), statut: statut(i.nom) })),
     );
     console.log('Écrit : liens.xlsx');
-
-    // Noms corrigés : ancien nom barré, nouveau nom, même lien
-    const corrections = Object.entries(listes.corrections ?? {});
-    if (corrections.length && !seulement) {
-      const fichier = path.join(racine, 'Noms-corriges-et-liens.pdf');
-      const listeDe = (nom) => {
-        const m = surMaman.has(nom) || existants.has(nom) || reactives.has(nom);
-        const p = surPapa.has(nom);
-        const base = m && p ? 'Listes de Maman et de Papa' : p ? 'Liste de Papa' : 'Liste de Maman';
-        return surNouvelle.has(nom) ? `${base}, et Nouvelle liste` : base;
-      };
-      const blocs = corrections.map(([ancien, nouveau], i) => {
-        const trouve = invite(nouveau);
-        return `<section class="invite">
-    <p class="ancien"><span class="numero">${i + 1}.</span> <s>${echapper(ancien)}</s></p>
-    <h3>${echapper(nouveau)}</h3>
-    <p class="mention">${listeDe(nouveau)}</p>
-    <p class="mention">Lien inchangé : si vous l'avez déjà envoyé, l'invité verra automatiquement le nom corrigé. Inutile de le renvoyer.</p>
-    <p class="message">${messageHtml(trouve)}</p>
-    <p class="envoye"><span class="case">☐</span> Envoyé</p>
-  </section>`;
-      });
-      const corps = `<p class="intro">L'orthographe de ces invités a été corrigée. Chaque lien reste le même et affiche désormais le nom corrigé.</p>
-  ${blocs.join('\n  ')}`;
-      await imprimer(nav, fichier, pageHtml({ titreDocument: 'Noms corrigés et liens', corps }));
-      console.log(`Écrit : ${path.basename(fichier)} (${corrections.length} noms)`);
-    }
   }
 
   // Liens de test, pour Gween uniquement
