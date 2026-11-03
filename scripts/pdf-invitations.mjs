@@ -120,10 +120,11 @@ const doublonHtml = ({ existant, variante }, numero) => `<section class="invite 
     <p class="envoye"><span class="case">☐</span> Envoyé</p>
   </section>`;
 
-const partieHtml = ({ titre, intro, invites: liste = [], doublons = [], noms }) => `
+// `debut` : numéro du premier invité, pour une partie qui continue la numérotation.
+const partieHtml = ({ titre, intro, invites: liste = [], doublons = [], noms, debut = 1 }) => `
   <p class="section-titre">${echapper(titre)} (${liste.length + doublons.length + (noms?.length ?? 0)})</p>
   ${intro ? `<p class="intro">${echapper(intro)}</p>` : ''}
-  ${liste.map((invite, i) => inviteHtml(invite, i + 1)).join('\n  ')}
+  ${liste.map((invite, i) => inviteHtml(invite, debut + i)).join('\n  ')}
   ${doublons.map((d, i) => doublonHtml(d, i + 1)).join('\n  ')}
   ${noms ? `<ul class="noms">${noms.map((n) => `<li>${echapper(n)}</li>`).join('')}</ul>` : ''}`;
 
@@ -365,7 +366,17 @@ try {
       surPapa.has(nom)
         ? [`Lien déjà existant (liste de ${lui}) : si vous l'avez déjà envoyé, inutile de le renvoyer.`]
         : [];
-    const nouvelle = [{ titre: 'Les invités', invites: nouvelleListe.map((n) => invite(n, dejaSurPapa(n))) }];
+    // Ajouts ultérieurs (`ajouts['Nouvelle liste']` : { 'date': [noms] }) : une
+    // partie par date, numérotée à la suite des invités d'origine.
+    const ajouts = Object.entries(listes.ajouts?.['Nouvelle liste'] ?? {});
+    const ajoutes = new Set(ajouts.flatMap(([, noms]) => noms));
+    const origine = nouvelleListe.filter((n) => !ajoutes.has(n));
+    const nouvelle = [{ titre: 'Les invités', invites: origine.map((n) => invite(n, dejaSurPapa(n))) }];
+    let suivant = origine.length + 1;
+    for (const [date, noms] of ajouts) {
+      nouvelle.push({ titre: `Ajouts du ${date}`, debut: suivant, invites: noms.map((n) => invite(n, dejaSurPapa(n))) });
+      suivant += noms.length;
+    }
 
     const documents = [
       ['Invitations-Mariage-Liste-Maman.pdf', { sousTitre: `Liste de ${elle}` }, maman],
