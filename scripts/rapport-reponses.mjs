@@ -152,13 +152,39 @@ const tableauAbsents = absents.length
   </table>`
   : vide('Aucune absence signalée pour le moment.');
 
+// Sans réponse, regroupés par liste : chaque parent voit qui relancer. Un
+// invité présent sur plusieurs listes figure dans chacune, avec une mention,
+// mais n'est compté qu'une fois dans le total.
+const LISTES = [
+  ['Maman', (nom) => surMaman.has(nom)],
+  ['Papa', (nom) => surPapa.has(nom) || remplacePar.has(nom)],
+  ['Nouvelle liste', (nom) => surNouvelle.has(nom)],
+];
+const groupesSans = LISTES.map(([titre, contient]) => ({
+  titre,
+  invites: sansReponse
+    .filter((l) => contient(l.nom))
+    .map((l) => {
+      const autres = LISTES.filter(([t, c]) => t !== titre && c(l.nom)).map(([t]) => (t === 'Nouvelle liste' ? 'la Nouvelle liste' : `la liste ${t}`));
+      return autres.length ? { ...l, mentions: [...l.mentions, `aussi sur ${autres.join(' et ')}`] } : l;
+    }),
+}));
 const tableauSans = sansReponse.length
-  ? `<table>
-    <thead><tr><th class="n">N°</th><th>Invité</th><th>Liste</th></tr></thead>
-    <tbody>${sansReponse
-      .map((l, i) => `<tr><td class="n">${i + 1}</td><td>${nomHtml(l)}</td><td>${l.liste}</td></tr>`)
-      .join('')}</tbody>
+  ? groupesSans
+      .map(
+        ({ titre, invites }) => `<div class="groupe">
+    <h3>${echapper(titre)} <span class="compte">(${invites.length})</span></h3>
+    ${
+      invites.length
+        ? `<table>
+    <thead><tr><th class="n">N°</th><th>Invité</th></tr></thead>
+    <tbody>${invites.map((l, i) => `<tr><td class="n">${i + 1}</td><td>${nomHtml(l)}</td></tr>`).join('')}</tbody>
   </table>`
+        : vide('Tous les invités de cette liste ont répondu.')
+    }
+  </div>`,
+      )
+      .join('\n')
   : vide('Tous les invités ont répondu.');
 
 const aVerifier = lignes.filter((l) => l.mentions.length).length;
@@ -239,6 +265,14 @@ const html = `<!doctype html>
   .date { white-space: nowrap; }
   .mention { display: block; color: #9a7b3f; font-size: 9pt; font-style: italic; }
   .vide { margin: 0; font-style: italic; }
+  .groupe + .groupe { margin-top: 6mm; }
+  h3 {
+    margin: 0 0 1.5mm;
+    color: #344733;
+    font: 700 13.5pt/1.2 'Cormorant Garamond', Georgia, serif;
+    break-after: avoid;
+  }
+  h3 .compte { color: #9a7b3f; }
   .note { margin-top: 6mm; color: #56634f; font-size: 9.5pt; font-style: italic; }
 </style>
 </head>
@@ -268,7 +302,7 @@ const html = `<!doctype html>
 
   <section>
     <h2>Sans réponse <span class="compte">(${sansReponse.length})</span></h2>
-    <p class="intro">À relancer avant le lundi 9 novembre. Les doublons possibles et les anciens liens remplacés n'y figurent pas.</p>
+    <p class="intro">À relancer avant le lundi 9 novembre, par liste. Un invité présent sur deux listes figure dans chacune, mais n'est compté qu'une fois dans le total. Les doublons possibles et les anciens liens remplacés n'y figurent pas.</p>
     ${tableauSans}
   </section>
 
@@ -296,4 +330,5 @@ console.log(`Invités ayant répondu : ${lignes.length}`);
 console.log(`Présents : ${presents.length} (${places} places)`);
 console.log(`Absents : ${absents.length}`);
 console.log(`Sans réponse : ${sansReponse.length}`);
+for (const { titre, invites } of groupesSans) console.log(`  ${titre} : ${invites.length}`);
 if (aVerifier) console.log(`Réponses à vérifier (doublon possible ou ancien lien) : ${aVerifier}`);
