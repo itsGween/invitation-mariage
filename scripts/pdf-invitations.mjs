@@ -15,8 +15,10 @@
 //   existants: [noms dont le lien a déjà été transmis],
 //   reactives: [anciens noms réintégrés avec leur code d'origine],
 //   feuilles: { Maman: [noms], Papa: [noms] },    // contenu d'origine, ordre de la feuille
-//   ajouts: { Maman|Papa: { date: { invites: [noms], corrections?: true } } },
-//                                                 // en bas du PDF, « Nouveaux liens (date) »
+//   ajouts: { Maman|Papa: { date: { invites: [noms], corrections?: true, pdf?: fichier } } },
+//                                                 // en bas du PDF, « Nouveaux liens (date) » ;
+//                                                 // avec pdf : dans ce PDF séparé à la place
+//                                                 // (`npm run pdf -- new` pour New-noms-ajout.pdf)
 //   doublons: { variante: nom déjà présent },     // doublons probables
 //   remplace: { nom: [anciens noms] },            // liens individuels remplacés
 //   corrections: { ancien nom: nom corrigé },     // ajout avec corrections: true
@@ -397,7 +399,7 @@ try {
       ]),
     }));
     const partiesAjouts = (liste, feuille) =>
-      ajoutsDe(liste).map(([date, { invites: noms = [], corrections }]) => {
+      ajoutsDe(liste).filter(([, a]) => !a.pdf).map(([date, { invites: noms = [], corrections }]) => {
         const invitesAjoutes = noms.map((n) => invite(n, dejaSurFeuille(feuille)(n)));
         return corrections
           ? {
@@ -417,6 +419,17 @@ try {
       ['Invitations-Mariage-Liste-Maman.pdf', { sousTitre: `Liste de ${elle}` }, maman],
       ['Invitations-Mariage-Liste-Papa.pdf', { sousTitre: `Liste de ${lui}` }, papa],
     ];
+    // Ajouts destinés à un PDF séparé (ajouts.*.*.pdf) : invités numérotés à la suite.
+    const separes = new Map();
+    for (const liste of Object.keys(listes.ajouts ?? {}))
+      for (const [, a] of ajoutsDe(liste))
+        if (a.pdf) separes.set(a.pdf, [...(separes.get(a.pdf) ?? []), ...(a.invites ?? []).map((n) => invite(n))]);
+    for (const [nomFichier, liste] of separes)
+      documents.push([
+        nomFichier,
+        { titreDocument: 'Nouveaux noms ajoutés', sousTitre: `Invitations : mariage de ${elle} & ${lui}` },
+        [{ titre: 'Les invités', invites: liste }],
+      ]);
     const choisis = seulement
       ? documents.filter(([nomFichier]) => nomFichier.toLowerCase().includes(seulement))
       : documents;
