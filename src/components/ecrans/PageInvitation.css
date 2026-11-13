@@ -34,7 +34,14 @@
     border-bottom: 1px solid rgb(191 155 90 / 0.5);
   }
 
+  /* Sans bouton (réponses closes) : les ancres restent au centre */
+  .page__entete--ferme {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+  }
+
   .page__monogramme {
+    justify-self: start;
     text-decoration: none;
   }
 

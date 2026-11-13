@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { wedding } from '../../config/wedding.ts';
-import { envoyerReponse, lireReponse, type Reponse } from '../../lib/reponse.ts';
+import { envoyerReponse, lireReponse, ReponsesFermees, type Reponse } from '../../lib/reponse.ts';
 import { Bouton } from '../Bouton.tsx';
 import { nombrePlaces } from '../../lib/invites.ts';
 import { IconeTelephone } from '../Icones.tsx';
@@ -9,13 +9,17 @@ import { Separateur } from '../Separateur.tsx';
 import './Confirmation.css';
 
 type Etat =
-  | { etape: 'attente' | 'erreurLecture' | 'choix' }
+  | { etape: 'attente' | 'erreurLecture' | 'choix' | 'ferme' }
   | { etape: 'demande' | 'envoi' | 'echec' | 'final'; reponse: Reponse };
 
 // La réponse est définitive pour ce lien : le serveur (api/reponse.ts) fait
 // foi. Au chargement, on lui demande si ce lien a déjà répondu ; avant tout
-// envoi, l'invité confirme son choix dans la page.
-export function Confirmation({ code, nom }: { code: string; nom: string }) {
+// envoi, l'invité confirme son choix dans la page. Après la date de clôture
+// (heure du serveur), un lien sans réponse voit un message à la place des
+// boutons ; `onFerme` prévient la page pour masquer les liens de l'en-tête.
+type Props = { code: string; nom: string; onFerme?: (ferme: boolean) => void };
+
+export function Confirmation({ code, nom, onFerme }: Props) {
   const { confirmation: t, contacts } = wedding;
   const [etat, setEtat] = useState<Etat>({ etape: 'attente' });
   const zone = useRef<HTMLDivElement>(null);
@@ -28,8 +32,11 @@ export function Confirmation({ code, nom }: { code: string; nom: string }) {
     let annule = false;
     setEtat({ etape: 'attente' });
     lireReponse(code)
-      .then((reponse) => {
-        if (!annule) setEtat(reponse ? { etape: 'final', reponse } : { etape: 'choix' });
+      .then(({ reponse, ferme }) => {
+        if (annule) return;
+        setEtat(
+          reponse ? { etape: 'final', reponse } : ferme ? { etape: 'ferme' } : { etape: 'choix' },
+        );
       })
       .catch(() => {
         if (!annule) setEtat({ etape: 'erreurLecture' });
@@ -40,6 +47,9 @@ export function Confirmation({ code, nom }: { code: string; nom: string }) {
   }, [code]);
 
   useEffect(verifier, [verifier]);
+
+  const ferme = etat.etape === 'ferme';
+  useEffect(() => onFerme?.(ferme), [ferme, onFerme]);
 
   function demander(reponse: Reponse) {
     setEtat({ etape: 'demande', reponse });
@@ -56,8 +66,11 @@ export function Confirmation({ code, nom }: { code: string; nom: string }) {
     try {
       // En cas de 409, c'est la réponse déjà enregistrée qui s'affiche.
       setEtat({ etape: 'final', reponse: await envoyerReponse(code, reponse) });
-    } catch {
-      setEtat({ etape: 'echec', reponse });
+    } catch (erreur) {
+      // Clôture passée pendant que la page était ouverte : on relit l'état
+      // qui fait foi (réponse déjà enregistrée, ou message de clôture).
+      if (erreur instanceof ReponsesFermees) verifier();
+      else setEtat({ etape: 'echec', reponse });
     }
   }
 
@@ -66,6 +79,7 @@ export function Confirmation({ code, nom }: { code: string; nom: string }) {
   const annonce = {
     attente: '',
     choix: '',
+    ferme: `${t.cloture} ${t.clotureContact}`,
     envoi: t.envoi,
     erreurLecture: t.erreurLecture,
     demande: present ? t.demandePresent : t.demandeAbsent,
@@ -96,10 +110,14 @@ export function Confirmation({ code, nom }: { code: string; nom: string }) {
           {t.titre}
         </h2>
         <Separateur className="confirmation__separateur" />
-        <p className="confirmation__texte">{t.texte}</p>
-        <p className="confirmation__places">
-          {nombrePlaces(nom) === 2 ? t.placesDeux : t.placesUne}
-        </p>
+        {!ferme && (
+          <>
+            <p className="confirmation__texte">{t.texte}</p>
+            <p className="confirmation__places">
+              {nombrePlaces(nom) === 2 ? t.placesDeux : t.placesUne}
+            </p>
+          </>
+        )}
 
         <p className="sr-only" aria-live="polite" aria-atomic="true">
           {annonce}
@@ -183,6 +201,13 @@ export function Confirmation({ code, nom }: { code: string; nom: string }) {
                 {t.reessayer}
               </Bouton>
             </>
+          )}
+
+          {etat.etape === 'ferme' && (
+            <div className="confirmation__recapitulatif confirmation__cloture">
+              <p className="confirmation__cloture-texte">{t.cloture}</p>
+              <p className="confirmation__changement">{t.clotureContact}</p>
+            </div>
           )}
 
           {etat.etape === 'final' && (

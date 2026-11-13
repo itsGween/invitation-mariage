@@ -19,6 +19,11 @@ export const wedding = {
   // sont calculés à partir de cette date.
   date: '2026-11-14',
 
+  // Clôture des réponses en ligne (ISO, UTC = heure d'Abidjan). Vérifiée par
+  // le serveur seul (api/reponse.ts), avec son heure à lui. Le script
+  // `npm run reponse` n'est pas concerné.
+  clotureReponses: '2026-11-10T00:00:00Z',
+
   // 'A' : cadre doré et roses — 'B' : aquarelle aérienne
   direction: 'A' as Direction,
 
@@ -89,6 +94,10 @@ export const wedding = {
     echec:
       "L'envoi n'a pas abouti. Merci de réessayer, ou de nous contacter au +225 07 07 86 41 82.",
     reessayer: 'Réessayer',
+    // Après la clôture, pour un lien qui n'a pas répondu
+    cloture:
+      "La date limite de confirmation, fixée au lundi 9 novembre, est passée. Il n'est plus possible de répondre en ligne.",
+    clotureContact: 'Pour toute question, contactez-nous.',
   },
 
   contacts: {

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { wedding, type Direction } from '../../config/wedding.ts';
 import { BlocDate } from '../BlocDate.tsx';
 import { Bouton } from '../Bouton.tsx';
@@ -20,6 +20,9 @@ type Props = { nom: string; code: string; direction: Direction };
 export function PageInvitation({ nom, code, direction }: Props) {
   const principal = useRef<HTMLElement>(null);
   const { navigation, maries, indicateur } = wedding;
+  // Réponses closes pour ce lien (sans réponse, date passée, selon le
+  // serveur) : plus d'appel à confirmer dans l'en-tête.
+  const [ferme, setFerme] = useState(false);
 
   // Après l'ouverture de l'enveloppe, le focus suit le contenu.
   useEffect(() => {
@@ -28,7 +31,7 @@ export function PageInvitation({ nom, code, direction }: Props) {
 
   return (
     <div id="accueil" className="page papier entree-fondu">
-      <header className="page__entete">
+      <header className={`page__entete${ferme ? ' page__entete--ferme' : ''}`}>
         <a href="#accueil" className="page__monogramme" aria-label={maries.monogramme}>
           <Monogramme />
         </a>
@@ -36,11 +39,13 @@ export function PageInvitation({ nom, code, direction }: Props) {
           <a href="#accueil">{navigation.accueil}</a>
           <a href="#invitation">{navigation.invitation}</a>
           <a href="#programme">{navigation.programme}</a>
-          <a href="#confirmation">{navigation.confirmation}</a>
+          {!ferme && <a href="#confirmation">{navigation.confirmation}</a>}
         </nav>
-        <Bouton variante="contour" href="#confirmation" className="page__bouton-entete">
-          {navigation.bouton}
-        </Bouton>
+        {!ferme && (
+          <Bouton variante="contour" href="#confirmation" className="page__bouton-entete">
+            {navigation.bouton}
+          </Bouton>
+        )}
       </header>
 
       <main ref={principal} tabIndex={-1} className="page__colonnes">
@@ -60,7 +65,7 @@ export function PageInvitation({ nom, code, direction }: Props) {
           <BlocDate className="page__date" />
         </div>
         <Programme />
-        <Confirmation code={code} nom={nom} />
+        <Confirmation code={code} nom={nom} onFerme={setFerme} />
       </main>
       <PiedDePage />
     </div>

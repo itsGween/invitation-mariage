@@ -1,5 +1,7 @@
-// GET  /api/reponse?code=…  — réponse déjà enregistrée pour ce lien, ou « aucune ».
+// GET  /api/reponse?code=…  — réponse déjà enregistrée pour ce lien, ou « aucune »,
+//                              et `ferme: true` une fois la date de clôture passée.
 // POST /api/reponse          — { code, reponse: "present" | "absent" }
+//                              Après la clôture : 403, rien n'est enregistré ni envoyé.
 // Retrouve l'invité à partir du code (même dérivation et même fichier chiffré
 // que le site). Une réponse est définitive : elle est enregistrée dans Redis
 // (SET NX) sous l'identifiant dérivé du code, puis envoyée par courriel via
@@ -20,6 +22,10 @@ import {
 const EXPEDITEUR = 'Invitation Mariage <onboarding@resend.dev>';
 const DESTINATAIRE_PAR_DEFAUT = 'kangahhansberryl7@outlook.com';
 const FUSEAU = 'Africa/Abidjan';
+
+// Heure du serveur uniquement, jamais celle de l'appareil de l'invité.
+const CLOTURE = Date.parse(wedding.clotureReponses);
+const reponsesFermees = () => Date.now() >= CLOTURE;
 
 const json = (corps: unknown, status: number) =>
   Response.json(corps, { status, headers: { 'Cache-Control': 'no-store' } });
@@ -110,7 +116,7 @@ export async function GET(requete: Request): Promise<Response> {
 
   try {
     const existante = await lireReponse(redis, invite.id);
-    return json(existante ?? { reponse: 'aucune' }, 200);
+    return json({ ...(existante ?? { reponse: 'aucune' }), ferme: reponsesFermees() }, 200);
   } catch (erreur) {
     console.error(`Lecture Redis échouée : ${String(erreur)}`);
     return json({ erreur: 'Service indisponible' }, 503);
@@ -118,6 +124,11 @@ export async function GET(requete: Request): Promise<Response> {
 }
 
 export async function POST(requete: Request): Promise<Response> {
+  if (reponsesFermees()) {
+    console.log('Réponse refusée : date limite passée (aucun enregistrement, aucun courriel).');
+    return json({ erreur: 'Les réponses sont closes', ferme: true }, 403);
+  }
+
   let corps: { code?: unknown; reponse?: unknown };
   try {
     corps = await requete.json();

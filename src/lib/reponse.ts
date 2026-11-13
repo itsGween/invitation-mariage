@@ -6,7 +6,7 @@ export type Reponse = 'present' | 'absent';
 
 // `npm run dev` ne fait pas tourner les fonctions Vercel : réponses simulées,
 // sans appel réseau ni courriel. ?rsvp=present ou ?rsvp=absent simule un lien
-// qui a déjà répondu, ?rsvp=attente une lecture qui ne se termine pas,
+// qui a déjà répondu, ?rsvp=ferme un lien sans réponse après la clôture, ?rsvp=attente une lecture qui ne se termine pas,
 // ?rsvp=echec un envoi qui échoue, ?rsvp=lent un envoi qui dure.
 const simulation = import.meta.env.DEV
   ? new URLSearchParams(window.location.search).get('rsvp')
@@ -17,19 +17,29 @@ function reponseValide(valeur: unknown): Reponse | null {
   return valeur === 'present' || valeur === 'absent' ? valeur : null;
 }
 
-/** Réponse déjà enregistrée pour ce lien, ou `null`. */
-export async function lireReponse(code: string): Promise<Reponse | null> {
+export type Lecture = {
+  /** Réponse déjà enregistrée pour ce lien, ou `null`. */
+  reponse: Reponse | null;
+  /** Date de clôture passée, selon l'heure du serveur. */
+  ferme: boolean;
+};
+
+export async function lireReponse(code: string): Promise<Lecture> {
   if (import.meta.env.DEV) {
     await attendre(simulation === 'attente' ? 3_600_000 : 700);
-    return reponseValide(simulation);
+    return { reponse: reponseValide(simulation), ferme: simulation === 'ferme' };
   }
 
   const resultat = await fetch(`/api/reponse?code=${encodeURIComponent(code)}`, {
     cache: 'no-store',
   });
   if (!resultat.ok) throw new Error(`Lecture refusée (${resultat.status})`);
-  return reponseValide((await resultat.json())?.reponse);
+  const corps = await resultat.json();
+  return { reponse: reponseValide(corps?.reponse), ferme: corps?.ferme === true };
 }
+
+/** Le serveur refuse l'envoi : la date de clôture est passée (403). */
+export class ReponsesFermees extends Error {}
 
 /**
  * Envoie la réponse. Renvoie la réponse qui fait foi : celle envoyée, ou
@@ -48,6 +58,7 @@ export async function envoyerReponse(code: string, reponse: Reponse): Promise<Re
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ code, reponse }),
   });
+  if (resultat.status === 403) throw new ReponsesFermees('Réponses closes');
   if (resultat.status === 409) {
     const existante = reponseValide((await resultat.json().catch(() => null))?.reponse);
     if (existante) return existante;

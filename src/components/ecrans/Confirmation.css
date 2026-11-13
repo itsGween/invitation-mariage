@@ -171,6 +171,18 @@
   line-height: 1.4;
 }
 
+/* Après la clôture, pour un lien sans réponse : même encadré que l'état final */
+.confirmation__cloture {
+  margin-top: 0.2rem;
+}
+
+.confirmation__cloture-texte {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-wrap: balance;
+}
+
 /* Contacts */
 .confirmation__contacts-bloc {
   display: flex;
